@@ -1,0 +1,33 @@
+{
+  "name": "login-mobile",
+  "feature": "login",
+  "screen": "mobile",
+  "device": "mobile",
+  "title": "로그인 · 모바일",
+  "description": "Perpetual Engine 계정 로그인 화면. 이메일/비밀번호 + 기기 기억 토글.",
+  "flow": ["dashboard-desktop"],
+  "tokensUsed": [
+    "--gradient-hero",
+    "--color-primary-500",
+    "--color-surface",
+    "--color-border",
+    "--color-text",
+    "--color-text-muted",
+    "--space-3",
+    "--space-4",
+    "--space-5",
+    "--radius-xl",
+    "--radius-phone",
+    "--text-base",
+    "--text-sm"
+  ],
+  "componentsUsed": [
+    ".device-mobile",
+    ".device-mobile__notch",
+    ".device-mobile__screen",
+    ".ip-hero",
+    ".ip-field",
+    ".ip-switch",
+    ".ip-btn--primary"
+  ]
+}

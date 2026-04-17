@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 500" width="1600" height="500">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0b1e"/>
+      <stop offset="50%" stop-color="#1a1040"/>
+      <stop offset="100%" stop-color="#0a0b1e"/>
+    </linearGradient>
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="50%" stop-color="#f0abfc"/>
+      <stop offset="100%" stop-color="#67e8f9"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#67e8f9" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#67e8f9" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+      <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.06"/>
+    </pattern>
+  </defs>
+
+  <rect width="1600" height="500" fill="url(#bgGrad)"/>
+  <rect width="1600" height="500" fill="url(#grid)"/>
+
+  <circle cx="200" cy="150" r="300" fill="url(#glow1)"/>
+  <circle cx="1400" cy="380" r="280" fill="url(#glow2)"/>
+
+  <g transform="translate(120, 170)">
+    <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="96" font-weight="800" fill="url(#titleGrad)" letter-spacing="-2">
+      Perpetual Engine
+    </text>
+    <text x="0" y="60" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="30" font-weight="400" fill="#c7d2fe" letter-spacing="-0.5">
+      AI 에이전트 스타트업 프레임워크
+    </text>
+    <text x="0" y="110" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" font-weight="300" fill="#94a3b8" letter-spacing="0">
+      토큰만 투자하면 AI가 사업을 만든다.
+    </text>
+
+    <g transform="translate(0, 160)">
+      <rect x="0" y="0" width="180" height="48" rx="24" fill="#4f46e5" fill-opacity="0.2" stroke="#818cf8" stroke-width="1"/>
+      <text x="90" y="31" font-family="-apple-system, sans-serif" font-size="16" font-weight="600" fill="#c7d2fe" text-anchor="middle">6 AI Agents</text>
+
+      <rect x="200" y="0" width="180" height="48" rx="24" fill="#a21caf" fill-opacity="0.2" stroke="#e879f9" stroke-width="1"/>
+      <text x="290" y="31" font-family="-apple-system, sans-serif" font-size="16" font-weight="600" fill="#f0abfc" text-anchor="middle">Real-time Dashboard</text>
+
+      <rect x="400" y="0" width="180" height="48" rx="24" fill="#0891b2" fill-opacity="0.2" stroke="#22d3ee" stroke-width="1"/>
+      <text x="490" y="31" font-family="-apple-system, sans-serif" font-size="16" font-weight="600" fill="#67e8f9" text-anchor="middle">Metrics-Driven</text>
+    </g>
+  </g>
+
+  <g transform="translate(1100, 120)" opacity="0.95">
+    <circle cx="160" cy="160" r="140" fill="none" stroke="#a78bfa" stroke-width="2" stroke-opacity="0.3"/>
+    <circle cx="160" cy="160" r="100" fill="none" stroke="#f0abfc" stroke-width="2" stroke-opacity="0.4"/>
+    <circle cx="160" cy="160" r="60" fill="none" stroke="#67e8f9" stroke-width="2" stroke-opacity="0.6"/>
+
+    <g font-family="-apple-system, sans-serif" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">
+      <g transform="translate(160, 20)">
+        <circle r="22" fill="#6366f1"/>
+        <text dy="5">CEO</text>
+      </g>
+      <g transform="translate(280, 110)">
+        <circle r="22" fill="#0891b2"/>
+        <text dy="5">CTO</text>
+      </g>
+      <g transform="translate(240, 240)">
+        <circle r="22" fill="#c026d3"/>
+        <text dy="5">PO</text>
+      </g>
+      <g transform="translate(80, 240)">
+        <circle r="22" fill="#db2777"/>
+        <text dy="5">DSN</text>
+      </g>
+      <g transform="translate(40, 110)">
+        <circle r="22" fill="#059669"/>
+        <text dy="5">QA</text>
+      </g>
+      <g transform="translate(160, 300)">
+        <circle r="22" fill="#ea580c"/>
+        <text dy="5">MKT</text>
+      </g>
+    </g>
+
+    <g transform="translate(160, 160)">
+      <circle r="38" fill="#0a0b1e" stroke="url(#titleGrad)" stroke-width="2"/>
+      <text font-family="-apple-system, sans-serif" font-size="14" font-weight="700" fill="url(#titleGrad)" text-anchor="middle" dy="5">CORE</text>
+    </g>
+
+    <g stroke="#a78bfa" stroke-width="1" stroke-opacity="0.4" stroke-dasharray="3 3">
+      <line x1="160" y1="160" x2="160" y2="42"/>
+      <line x1="160" y1="160" x2="258" y2="110"/>
+      <line x1="160" y1="160" x2="218" y2="240"/>
+      <line x1="160" y1="160" x2="102" y2="240"/>
+      <line x1="160" y1="160" x2="62" y2="110"/>
+      <line x1="160" y1="160" x2="160" y2="278"/>
+    </g>
+  </g>
+</svg>

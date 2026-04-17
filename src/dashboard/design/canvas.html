@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>Perpetual Engine · Design Canvas</title>
+  <script src="https://unpkg.com/panzoom@9.4.3/dist/panzoom.min.js"></script>
+  <script src="https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js"></script>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%; overflow: hidden;
+      background: #0f172a; color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Segoe UI", sans-serif;
+    }
+    .canvas {
+      position: fixed; inset: 0; overflow: hidden; touch-action: none; cursor: grab;
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(99,102,241,0.15), transparent 60%),
+        radial-gradient(1000px 600px at 80% 90%, rgba(236,72,153,0.12), transparent 60%),
+        #0f172a;
+    }
+    .canvas:active { cursor: grabbing; }
+    .board { display: flex; gap: 120px; padding: 200px 140px; align-items: flex-start; will-change: transform; }
+    .artboard { display: flex; flex-direction: column; gap: 10px; }
+    .artboard-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; max-width: 100%; }
+    .artboard-title-group { display: flex; flex-direction: column; gap: 2px; }
+    .artboard-title { font-size: 15px; font-weight: 700; color: #e2e8f0; letter-spacing: -0.01em; }
+    .artboard-label { font-size: 11px; color: #94a3b8; letter-spacing: 0.1em; text-transform: uppercase; }
+    .artboard-btn {
+      padding: 4px 10px; font-size: 11px; border-radius: 6px;
+      border: 1px solid rgba(148,163,184,0.3);
+      background: rgba(30,41,59,0.7); color: #e2e8f0; cursor: pointer; letter-spacing: 0.04em;
+    }
+    .artboard-btn:hover { background: #334155; }
+
+    /* iframe shells — 실제 device frame 은 mockup 내부에서 렌더 */
+    .artboard-frame {
+      background: transparent; position: relative; overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(148,163,184,0.1);
+    }
+    .artboard-frame iframe {
+      border: 0; display: block;
+      background: transparent;
+      pointer-events: none; /* 캔버스 pan 우선 */
+    }
+    /* device 별 프레임 사이즈 (iframe 이 내부에 device-* 를 렌더) */
+    .size-mobile { width: 420px; height: 870px; }
+    .size-tablet { width: 860px; height: 1200px; }
+    .size-desktop { width: 1320px; height: 830px; }
+
+    /* Toolbar */
+    .toolbar {
+      position: fixed; top: 14px; left: 14px; right: 14px; z-index: 10;
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      background: rgba(15,23,42,0.72); backdrop-filter: blur(12px);
+      padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.2);
+    }
+    .brand { font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px; }
+    .hint { font-size: 12px; color: #94a3b8; }
+    .toolbar .spacer { flex: 1; }
+    .toolbar button {
+      padding: 6px 12px; font-size: 13px; border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.3);
+      background: rgba(30,41,59,0.85); color: #e2e8f0; cursor: pointer;
+    }
+    .toolbar button:hover { background: #334155; }
+    .toolbar button.primary { background: linear-gradient(90deg,#6366f1,#ec4899); border-color: transparent; font-weight: 600; }
+    .zoom-level { font-variant-numeric: tabular-nums; font-size: 12px; color: #cbd5e1; min-width: 54px; text-align: right; }
+    select.device-filter {
+      padding: 6px 10px; font-size: 13px; border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.3);
+      background: rgba(30,41,59,0.85); color: #e2e8f0; cursor: pointer;
+    }
+
+    /* Empty / Error states */
+    .state-center {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 14px; text-align: center;
+      pointer-events: none;
+    }
+    .state-center h2 { margin: 0; font-size: 20px; font-weight: 700; }
+    .state-center p { margin: 0; color: #94a3b8; max-width: 520px; font-size: 14px; line-height: 1.6; }
+    .state-center code {
+      background: rgba(30,41,59,0.7); padding: 2px 6px; border-radius: 4px;
+      font-size: 12px; font-family: ui-monospace, monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <span class="brand">🎨 Design Canvas</span>
+    <span class="hint">휠/핀치 = 줌 · 드래그 = 이동</span>
+    <select class="device-filter" id="deviceFilter">
+      <option value="all">모든 디바이스</option>
+      <option value="mobile">모바일만</option>
+      <option value="tablet">태블릿만</option>
+      <option value="desktop">데스크탑만</option>
+    </select>
+    <div class="spacer"></div>
+    <span id="count" class="hint">로딩…</span>
+    <span class="zoom-level" id="zoomLevel">100%</span>
+    <button onclick="fit()">화면 맞춤</button>
+    <button onclick="reset()">100%</button>
+    <button class="primary" onclick="exportAll()">⬇ 전체 PNG</button>
+    <button onclick="refresh()">↻ 새로고침</button>
+  </div>
+
+  <div class="canvas" id="canvas">
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="state-center" id="emptyState" style="display:none;">
+    <h2>아직 디자인 시안이 없습니다</h2>
+    <p>
+      Designer 에이전트가 <code>docs/design/mockups/&lt;feature&gt;/</code> 아래에<br>
+      <code>meta.json</code> 과 <code>*.html</code> 을 생성하면 여기에 자동으로 표시됩니다.<br><br>
+      먼저 <code>docs/design/mockups/system/preview.html</code> 로 디자인 시스템을 부트스트랩하세요.
+    </p>
+  </div>
+
+  <script>
+    const board = document.getElementById('board');
+    const zoomLabel = document.getElementById('zoomLevel');
+    const countLabel = document.getElementById('count');
+    const emptyState = document.getElementById('emptyState');
+    const deviceFilter = document.getElementById('deviceFilter');
+
+    const pz = panzoom(board, {
+      maxZoom: 4, minZoom: 0.05, zoomDoubleClickSpeed: 1,
+      smoothScroll: false, bounds: false, filterKey: () => true,
+    });
+    pz.on('transform', () => {
+      zoomLabel.textContent = Math.round(pz.getTransform().scale * 100) + '%';
+    });
+
+    let entries = [];
+
+    async function load() {
+      try {
+        const res = await fetch('/api/design/mockups');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        entries = await res.json();
+        render();
+      } catch (err) {
+        countLabel.textContent = '로드 실패: ' + err.message;
+      }
+    }
+
+    function render() {
+      const filter = deviceFilter.value;
+      const shown = entries.filter(e => filter === 'all' || e.device === filter);
+      countLabel.textContent = `${shown.length} / ${entries.length} 시안`;
+      board.innerHTML = '';
+      if (shown.length === 0) {
+        emptyState.style.display = entries.length === 0 ? 'flex' : 'none';
+        return;
+      }
+      emptyState.style.display = 'none';
+      for (const e of shown) {
+        board.appendChild(renderArtboard(e));
+      }
+      setTimeout(fit, 100);
+    }
+
+    function renderArtboard(e) {
+      const art = document.createElement('div');
+      art.className = 'artboard';
+      art.dataset.id = e.id;
+
+      const head = document.createElement('div');
+      head.className = 'artboard-head';
+      head.innerHTML = `
+        <div class="artboard-title-group">
+          <span class="artboard-title">${escapeHtml(e.title || e.name)}</span>
+          <span class="artboard-label">${e.feature} · ${e.device}${e.screen ? ' · ' + e.screen : ''}</span>
+        </div>
+      `;
+      const btn = document.createElement('button');
+      btn.className = 'artboard-btn';
+      btn.textContent = 'PNG';
+      btn.onclick = () => exportOne(e, btn);
+      head.appendChild(btn);
+
+      const frame = document.createElement('div');
+      const sizeClass = e.device === 'mobile' ? 'size-mobile'
+        : e.device === 'tablet' ? 'size-tablet'
+        : 'size-desktop';
+      frame.className = `artboard-frame ${sizeClass}`;
+
+      const iframe = document.createElement('iframe');
+      iframe.src = `/design-assets/${e.htmlPath}`;
+      iframe.width = '100%';
+      iframe.height = '100%';
+      iframe.setAttribute('scrolling', 'no');
+      frame.appendChild(iframe);
+
+      art.appendChild(head);
+      art.appendChild(frame);
+      return art;
+    }
+
+    async function exportOne(entry, btn) {
+      // iframe 의 내부 document 에서 device 루트 요소를 찾아 캡처
+      const art = [...document.querySelectorAll('.artboard')].find(a => a.dataset.id === entry.id);
+      const iframe = art.querySelector('iframe');
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '생성 중…';
+      try {
+        const doc = iframe.contentDocument;
+        const target = doc.querySelector('.device-mobile, .device-tablet, .device-desktop') || doc.body;
+        const dataUrl = await htmlToImage.toPng(target, {
+          pixelRatio: 2, cacheBust: true, backgroundColor: '#0f172a',
+        });
+        download(dataUrl, `${entry.id}.png`);
+      } catch (err) {
+        alert('PNG 추출 실패: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = label;
+      }
+    }
+
+    async function exportAll() {
+      const shown = [...document.querySelectorAll('.artboard')];
+      for (const art of shown) {
+        const id = art.dataset.id;
+        const iframe = art.querySelector('iframe');
+        try {
+          const doc = iframe.contentDocument;
+          const target = doc.querySelector('.device-mobile, .device-tablet, .device-desktop') || doc.body;
+          const dataUrl = await htmlToImage.toPng(target, {
+            pixelRatio: 2, cacheBust: true, backgroundColor: '#0f172a',
+          });
+          download(dataUrl, `${id}.png`);
+          await new Promise(r => setTimeout(r, 150));
+        } catch (err) {
+          console.error(`${id} 추출 실패:`, err);
+        }
+      }
+    }
+
+    function download(dataUrl, filename) {
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    function reset() { pz.zoomAbs(innerWidth / 2, innerHeight / 2, 1); pz.moveTo(0, 80); }
+
+    function fit() {
+      const rect = board.getBoundingClientRect();
+      const curScale = pz.getTransform().scale;
+      const actualW = rect.width / curScale;
+      const actualH = rect.height / curScale;
+      if (actualW === 0 || actualH === 0) return;
+      const scale = Math.min(
+        (innerWidth - 60) / actualW,
+        (innerHeight - 140) / actualH,
+        1
+      );
+      pz.zoomAbs(0, 0, scale);
+      pz.moveTo((innerWidth - actualW * scale) / 2, (innerHeight - actualH * scale) / 2 + 30);
+    }
+
+    function refresh() { load(); }
+
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    }
+
+    deviceFilter.addEventListener('change', render);
+    addEventListener('resize', () => setTimeout(fit, 50));
+    document.addEventListener('gesturestart', e => e.preventDefault());
+
+    load();
+  </script>
+</body>
+</html>

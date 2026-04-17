@@ -1,0 +1,42 @@
+{
+  "name": "dashboard-desktop",
+  "feature": "dashboard",
+  "screen": "desktop",
+  "device": "desktop",
+  "title": "대시보드 · 데스크탑",
+  "description": "스프린트 현황 · KPI · 배포 그래프 · 최근 태스크 테이블.",
+  "flow": [],
+  "tokensUsed": [
+    "--color-surface",
+    "--color-surface-muted",
+    "--color-surface-inverse",
+    "--color-border",
+    "--color-divider",
+    "--color-primary-500",
+    "--color-danger",
+    "--color-success",
+    "--space-4",
+    "--space-6",
+    "--space-7",
+    "--space-8",
+    "--radius-lg",
+    "--radius-xl",
+    "--text-md"
+  ],
+  "componentsUsed": [
+    ".device-desktop",
+    ".device-desktop__chrome",
+    ".device-desktop__dot",
+    ".device-desktop__address",
+    ".device-desktop__body",
+    ".ip-sidebar",
+    ".ip-nav-item",
+    ".ip-kpi",
+    ".ip-panel",
+    ".ip-table",
+    ".ip-badge--success",
+    ".ip-badge--warning",
+    ".ip-badge--info",
+    ".ip-h2"
+  ]
+}

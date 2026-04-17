@@ -1,0 +1,11 @@
+{
+  "name": "system-preview",
+  "feature": "system",
+  "screen": "preview",
+  "device": "desktop",
+  "title": "디자인 시스템 프리뷰",
+  "description": "토큰·컴포넌트 카탈로그. 모든 피처 목업의 기준.",
+  "flow": [],
+  "tokensUsed": ["*"],
+  "componentsUsed": ["*"]
+}

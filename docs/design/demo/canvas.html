@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>Perpetual Engine · Design Canvas Demo</title>
+  <script src="https://unpkg.com/panzoom@9.4.3/dist/panzoom.min.js"></script>
+  <script src="https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js"></script>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; height:100%; overflow:hidden; background:#0f172a; color:#e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Segoe UI", sans-serif; }
+
+    /* Canvas (pan/zoom root) */
+    .canvas { position: fixed; inset: 0; overflow: hidden; touch-action: none; cursor: grab;
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(99,102,241,0.15), transparent 60%),
+        radial-gradient(1000px 600px at 80% 90%, rgba(236,72,153,0.12), transparent 60%),
+        #0f172a;
+    }
+    .canvas:active { cursor: grabbing; }
+    .board { display: flex; gap: 120px; padding: 200px 140px; align-items: flex-start; will-change: transform; }
+    .artboard { display:flex; flex-direction:column; gap:10px; }
+    .artboard-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .artboard-label { font-size:11px; color:#94a3b8; letter-spacing:0.1em; text-transform:uppercase; }
+    .artboard-btn { padding:4px 10px; font-size:11px; border-radius:6px; border:1px solid rgba(148,163,184,0.3);
+      background: rgba(30,41,59,0.7); color:#e2e8f0; cursor:pointer; letter-spacing:0.04em; }
+    .artboard-btn:hover { background:#334155; }
+
+    /* iPhone frame */
+    .iphone {
+      width: 390px; height: 844px;
+      background: #0b0b0b; border-radius: 54px; padding: 12px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6), inset 0 0 0 2px #1f2937, inset 0 0 0 3px #0b0b0b;
+      position: relative;
+    }
+    .iphone-screen { width:100%; height:100%; background:#f8fafc; border-radius:42px; overflow:hidden; color:#0f172a;
+      display:flex; flex-direction:column; }
+    .iphone-notch { position:absolute; top:24px; left:50%; transform:translateX(-50%); width:120px; height:32px;
+      background:#000; border-radius:20px; z-index:2; }
+
+    /* Browser frame */
+    .browser {
+      width: 1280px; height: 800px; background: #ffffff; border-radius: 14px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.5); overflow:hidden; color:#0f172a;
+      display:flex; flex-direction:column;
+    }
+    .browser-chrome { display:flex; align-items:center; gap:8px; padding:10px 14px; background:#f1f5f9; border-bottom:1px solid #e2e8f0; }
+    .dot { width:12px; height:12px; border-radius:50%; }
+    .address { flex:1; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 12px;
+      font-size:12px; color:#64748b; }
+
+    /* Toolbar */
+    .toolbar {
+      position: fixed; top: 14px; left: 14px; right: 14px; z-index: 10;
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      background: rgba(15,23,42,0.72); backdrop-filter: blur(12px);
+      padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.2);
+    }
+    .brand { font-weight:700; letter-spacing:-0.01em; }
+    .hint { font-size:12px; color:#94a3b8; }
+    .toolbar .spacer { flex:1; }
+    .toolbar button {
+      padding: 6px 12px; font-size: 13px; border-radius: 8px; border: 1px solid rgba(148,163,184,0.3);
+      background: rgba(30,41,59,0.85); color:#e2e8f0; cursor:pointer;
+    }
+    .toolbar button:hover { background:#334155; }
+    .toolbar button.primary { background: linear-gradient(90deg,#6366f1,#ec4899); border-color: transparent; font-weight:600; }
+    .zoom-level { font-variant-numeric: tabular-nums; font-size:12px; color:#cbd5e1; min-width:54px; text-align:right; }
+
+    /* ---------- Mobile content (Login) ---------- */
+    .m-status { display:flex; justify-content:space-between; padding: 18px 28px 8px; font-size: 14px; font-weight:700; }
+    .m-hero { padding: 28px 28px 32px; background: linear-gradient(135deg,#6366f1 0%,#8b5cf6 45%,#ec4899 100%); color:#fff; }
+    .m-hero h1 { font-size:30px; font-weight:800; letter-spacing:-0.02em; margin:0 0 6px; }
+    .m-hero p { margin:0; opacity:0.92; font-size:14px; }
+    .m-body { padding: 24px; display:flex; flex-direction:column; gap:14px; flex:1; }
+    .m-field { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:14px 16px; }
+    .m-field .lb { font-size:11px; color:#94a3b8; letter-spacing:0.08em; text-transform:uppercase; }
+    .m-field .vl { margin-top:4px; font-size:15px; font-weight:600; color:#0f172a; }
+    .m-toggle { display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid #e2e8f0;
+      border-radius:14px; padding:14px 16px; }
+    .m-toggle .t-lb { font-size:14px; font-weight:600; }
+    .m-switch { width:44px; height:26px; background:#6366f1; border-radius:999px; position:relative; }
+    .m-switch::after { content:""; width:22px; height:22px; background:#fff; border-radius:50%; position:absolute; top:2px; right:2px;
+      box-shadow:0 2px 4px rgba(0,0,0,0.2); }
+    .m-cta { margin-top:auto; padding: 16px; background: linear-gradient(90deg,#6366f1,#ec4899); color:#fff;
+      border-radius:14px; text-align:center; font-weight:700; font-size:15px; letter-spacing:0.02em;
+      box-shadow: 0 10px 24px rgba(99,102,241,0.35); cursor:pointer; }
+    .m-footer { text-align:center; font-size:12px; color:#64748b; padding: 16px 0 22px; }
+    .m-footer a { color:#6366f1; text-decoration:none; font-weight:600; }
+
+    /* ---------- Desktop content (Dashboard) ---------- */
+    .d-body { flex:1; display:grid; grid-template-columns: 240px 1fr; min-height:0; }
+    .sidebar { background: #0f172a; color:#e2e8f0; padding: 22px 16px; display:flex; flex-direction:column; gap:4px; }
+    .sidebar h2 { font-size:15px; margin:0 0 18px 8px; letter-spacing:-0.01em; }
+    .nav-item { padding:9px 12px; border-radius:8px; font-size:13px; color:#cbd5e1; display:flex; gap:10px; align-items:center; }
+    .nav-item.active { background: rgba(99,102,241,0.22); color:#fff; }
+    .main { padding: 28px 32px; background:#f8fafc; overflow:hidden; }
+    .main h1 { margin:0 0 4px; font-size:24px; font-weight:800; letter-spacing:-0.02em; }
+    .main .sub { color:#64748b; font-size:13px; margin-bottom:22px; }
+    .kpi-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; margin-bottom:20px; }
+    .kpi { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; }
+    .kpi .label { font-size:12px; color:#64748b; }
+    .kpi .value { font-size:26px; font-weight:800; margin-top:4px; letter-spacing:-0.02em; }
+    .kpi .delta { font-size:11px; margin-top:6px; }
+    .kpi .delta.up { color:#10b981; }
+    .kpi .delta.down { color:#ef4444; }
+    .panels { display:grid; grid-template-columns: 1.3fr 1fr; gap:16px; }
+    .panel { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; }
+    .panel h2 { margin:0 0 12px; font-size:14px; font-weight:700; }
+    .chart { height:180px; background:
+        repeating-linear-gradient(0deg, rgba(226,232,240,0.6) 0 1px, transparent 1px 36px),
+        repeating-linear-gradient(90deg, rgba(226,232,240,0.6) 0 1px, transparent 1px 56px),
+        linear-gradient(180deg, rgba(99,102,241,0.1), transparent);
+      border-radius:8px; position:relative; overflow:hidden; }
+    .chart svg { position:absolute; inset:0; width:100%; height:100%; }
+    .table { width:100%; border-collapse: collapse; font-size:13px; }
+    .table th { text-align:left; padding:8px; border-bottom:1px solid #e2e8f0; font-weight:600; color:#64748b; font-size:11px;
+      text-transform:uppercase; letter-spacing:0.06em; }
+    .table td { text-align:left; padding:10px 8px; border-bottom:1px solid #f1f5f9; }
+    .badge { display:inline-block; padding:2px 10px; border-radius:999px; font-size:11px; font-weight:600; }
+    .badge-green { background:#dcfce7; color:#166534; }
+    .badge-amber { background:#fef3c7; color:#92400e; }
+    .badge-blue { background:#dbeafe; color:#1e40af; }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <span class="brand">🎨 Perpetual Engine Design Canvas</span>
+    <span class="hint">휠/핀치 = 줌 · 드래그 = 이동</span>
+    <div class="spacer"></div>
+    <span class="zoom-level" id="zoomLevel">100%</span>
+    <button onclick="fit()">화면 맞춤</button>
+    <button onclick="reset()">100%</button>
+    <button class="primary" onclick="exportAll()">⬇ 전체 PNG</button>
+  </div>
+
+  <div class="canvas" id="canvas">
+    <div class="board" id="board">
+
+      <!-- ========== Mobile : Login ========== -->
+      <div class="artboard" data-name="login-mobile">
+        <div class="artboard-head">
+          <span class="artboard-label">LOGIN · iPhone 14 · 390×844</span>
+          <button class="artboard-btn" onclick="exportOne(this)">PNG</button>
+        </div>
+        <div class="iphone" data-export>
+          <div class="iphone-notch"></div>
+          <div class="iphone-screen">
+            <div class="m-status"><span>9:41</span><span>●●● 5G ◼</span></div>
+            <div class="m-hero">
+              <h1>안녕하세요 👋</h1>
+              <p>Perpetual Engine 계정으로 로그인하세요</p>
+            </div>
+            <div class="m-body">
+              <div class="m-field">
+                <div class="lb">이메일</div>
+                <div class="vl">you@example.com</div>
+              </div>
+              <div class="m-field">
+                <div class="lb">비밀번호</div>
+                <div class="vl">••••••••••••</div>
+              </div>
+              <div class="m-toggle">
+                <div>
+                  <div class="t-lb">기기 기억</div>
+                  <div style="font-size:12px;color:#64748b;margin-top:2px;">다음 번 자동 로그인</div>
+                </div>
+                <div class="m-switch"></div>
+              </div>
+              <div style="flex:1"></div>
+              <div class="m-cta">로그인 →</div>
+              <div class="m-footer">아직 계정이 없으신가요? <a>가입하기</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== Desktop : Dashboard ========== -->
+      <div class="artboard" data-name="dashboard-desktop">
+        <div class="artboard-head">
+          <span class="artboard-label">DASHBOARD · Desktop · 1280×800</span>
+          <button class="artboard-btn" onclick="exportOne(this)">PNG</button>
+        </div>
+        <div class="browser" data-export>
+          <div class="browser-chrome">
+            <div class="dot" style="background:#ef4444"></div>
+            <div class="dot" style="background:#f59e0b"></div>
+            <div class="dot" style="background:#10b981"></div>
+            <div class="address">infinitepower.app/dashboard</div>
+          </div>
+          <div class="d-body">
+            <aside class="sidebar">
+              <h2>Perpetual Engine</h2>
+              <div class="nav-item active">📊 대시보드</div>
+              <div class="nav-item">🗂️ 칸반보드</div>
+              <div class="nav-item">👥 에이전트</div>
+              <div class="nav-item">📈 메트릭스</div>
+              <div class="nav-item">🎨 디자인</div>
+              <div class="nav-item">💬 메시지</div>
+              <div class="nav-item">⚙️ 설정</div>
+            </aside>
+            <main class="main">
+              <h1>스프린트 현황</h1>
+              <div class="sub">Sprint 12 · 2026-04-17 · 오후 3:42 업데이트</div>
+              <div class="kpi-grid">
+                <div class="kpi"><div class="label">진행 중</div><div class="value">7</div><div class="delta up">▲ 2 vs 어제</div></div>
+                <div class="kpi"><div class="label">완료</div><div class="value">14</div><div class="delta up">▲ 5 vs 어제</div></div>
+                <div class="kpi"><div class="label">블록됨</div><div class="value">1</div><div class="delta down">▼ 1 vs 어제</div></div>
+                <div class="kpi"><div class="label">속도 (SP/일)</div><div class="value">3.2</div><div class="delta up">▲ 0.4</div></div>
+              </div>
+              <div class="panels">
+                <div class="panel">
+                  <h2>배포 성공률</h2>
+                  <div class="chart">
+                    <svg viewBox="0 0 400 160" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+                          <stop offset="0" stop-color="#6366f1" stop-opacity="0.5"/>
+                          <stop offset="1" stop-color="#6366f1" stop-opacity="0"/>
+                        </linearGradient>
+                      </defs>
+                      <path d="M0,110 L40,100 80,90 120,85 160,60 200,70 240,50 280,40 320,45 360,30 400,20 L400,160 L0,160 Z" fill="url(#g)"/>
+                      <polyline fill="none" stroke="#6366f1" stroke-width="2.5"
+                        points="0,110 40,100 80,90 120,85 160,60 200,70 240,50 280,40 320,45 360,30 400,20"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="panel">
+                  <h2>최근 태스크</h2>
+                  <table class="table">
+                    <tr><th>ID</th><th>제목</th><th>담당</th><th>상태</th></tr>
+                    <tr><td>T-128</td><td>로그인 UX 개편</td><td>Designer</td><td><span class="badge badge-green">완료</span></td></tr>
+                    <tr><td>T-131</td><td>대시보드 KPI 추가</td><td>CTO</td><td><span class="badge badge-amber">진행 중</span></td></tr>
+                    <tr><td>T-134</td><td>온보딩 카피</td><td>PO</td><td><span class="badge badge-green">완료</span></td></tr>
+                    <tr><td>T-137</td><td>A/B 테스트</td><td>Marketer</td><td><span class="badge badge-blue">대기</span></td></tr>
+                  </table>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const board = document.getElementById('board');
+    const zoomLabel = document.getElementById('zoomLevel');
+
+    const pz = panzoom(board, {
+      maxZoom: 4,
+      minZoom: 0.1,
+      zoomDoubleClickSpeed: 1,
+      smoothScroll: false,
+      bounds: false,
+      filterKey: () => true,
+    });
+
+    pz.on('transform', () => {
+      const t = pz.getTransform();
+      zoomLabel.textContent = Math.round(t.scale * 100) + '%';
+    });
+
+    function reset() {
+      const t = pz.getTransform();
+      pz.zoomAbs(window.innerWidth / 2, window.innerHeight / 2, 1);
+      pz.moveTo(0, 80);
+    }
+
+    function fit() {
+      const rect = board.getBoundingClientRect();
+      const curScale = pz.getTransform().scale;
+      const actualW = rect.width / curScale;
+      const actualH = rect.height / curScale;
+      const scale = Math.min(
+        (window.innerWidth - 60) / actualW,
+        (window.innerHeight - 140) / actualH,
+        1
+      );
+      pz.zoomAbs(0, 0, scale);
+      const newW = actualW * scale;
+      const newH = actualH * scale;
+      pz.moveTo((window.innerWidth - newW) / 2, (window.innerHeight - newH) / 2 + 30);
+    }
+
+    async function exportOne(btn) {
+      const artboard = btn.closest('.artboard');
+      const node = artboard.querySelector('[data-export]');
+      const name = artboard.dataset.name;
+      btn.disabled = true;
+      btn.textContent = '생성 중…';
+      try {
+        const dataUrl = await htmlToImage.toPng(node, {
+          pixelRatio: 2,
+          cacheBust: true,
+          backgroundColor: '#0f172a',
+        });
+        download(dataUrl, `${name}.png`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'PNG';
+      }
+    }
+
+    async function exportAll() {
+      const artboards = document.querySelectorAll('.artboard');
+      for (const a of artboards) {
+        const node = a.querySelector('[data-export]');
+        const name = a.dataset.name;
+        const dataUrl = await htmlToImage.toPng(node, {
+          pixelRatio: 2,
+          cacheBust: true,
+          backgroundColor: '#0f172a',
+        });
+        download(dataUrl, `${name}.png`);
+        await new Promise(r => setTimeout(r, 150));
+      }
+    }
+
+    function download(dataUrl, filename) {
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    // Auto-fit on load
+    window.addEventListener('load', () => setTimeout(fit, 50));
+    window.addEventListener('resize', () => setTimeout(fit, 50));
+
+    // Prevent browser pinch-zoom on the page (we handle it on canvas)
+    document.addEventListener('gesturestart', e => e.preventDefault());
+  </script>
+</body>
+</html>

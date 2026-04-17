@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 820" width="1400" height="820">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+      <feOffset dx="0" dy="3" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <rect width="1400" height="820" fill="url(#bgGrad)"/>
+
+  <text x="700" y="55" font-family="-apple-system, sans-serif" font-size="30" font-weight="700" fill="#f1f5f9" text-anchor="middle">Metrics-Driven Decision Flow</text>
+  <text x="700" y="85" font-family="-apple-system, sans-serif" font-size="15" fill="#94a3b8" text-anchor="middle">"감"이 아닌 데이터로 판단 · 체크포인트마다 자동 판정</text>
+
+  <g transform="translate(50, 130)" font-family="-apple-system, sans-serif" filter="url(#shadow)">
+    <rect width="520" height="180" rx="14" fill="#1e293b" stroke="#475569"/>
+    <text x="20" y="34" font-size="17" font-weight="700" fill="#a78bfa">① 기획 단계 — 가설과 측정 설계</text>
+
+    <g transform="translate(20, 55)" font-size="12" font-family="monospace">
+      <rect width="480" height="110" rx="8" fill="#0f172a" stroke="#334155"/>
+      <g transform="translate(14, 20)" fill="#cbd5e1">
+        <text y="0"><tspan fill="#67e8f9">hypothesis</tspan>: "온보딩 개선 시 7일 리텐션 20% 상승"</text>
+        <text y="18"><tspan fill="#67e8f9">kpi</tspan>: DAU 100 → 500 <tspan fill="#94a3b8">(higher_is_better)</tspan></text>
+        <text y="36"><tspan fill="#67e8f9">period</tspan>: 2026-04-17 ~ 2026-05-17</text>
+        <text y="54"><tspan fill="#67e8f9">checkpoints</tspan>: ["2026-04-24", "2026-05-01", "2026-05-08"]</text>
+        <text y="72"><tspan fill="#67e8f9">baseline</tspan>: 100 · <tspan fill="#67e8f9">target</tspan>: 500</text>
+      </g>
+    </g>
+  </g>
+
+  <g transform="translate(620, 130)" font-family="-apple-system, sans-serif" filter="url(#shadow)">
+    <rect width="730" height="180" rx="14" fill="#1e293b" stroke="#475569"/>
+    <text x="20" y="34" font-size="17" font-weight="700" fill="#f0abfc">② 실행 &amp; 측정</text>
+
+    <g transform="translate(20, 55)">
+      <g transform="translate(0, 0)">
+        <rect width="220" height="110" rx="10" fill="#0f172a" stroke="#334155"/>
+        <text x="110" y="28" font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">Week 1 체크포인트</text>
+        <text x="110" y="58" font-size="32" font-weight="800" fill="#fbbf24" text-anchor="middle">180</text>
+        <text x="110" y="80" font-size="12" fill="#94a3b8" text-anchor="middle">달성률 20% (baseline 제외)</text>
+        <text x="110" y="98" font-size="11" fill="#67e8f9" text-anchor="middle">중간 판정 : 관대하게</text>
+      </g>
+      <g transform="translate(240, 0)">
+        <rect width="220" height="110" rx="10" fill="#0f172a" stroke="#334155"/>
+        <text x="110" y="28" font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">Week 2 체크포인트</text>
+        <text x="110" y="58" font-size="32" font-weight="800" fill="#fb923c" text-anchor="middle">310</text>
+        <text x="110" y="80" font-size="12" fill="#94a3b8" text-anchor="middle">달성률 53%</text>
+        <text x="110" y="98" font-size="11" fill="#67e8f9" text-anchor="middle">반복개선 권고</text>
+      </g>
+      <g transform="translate(480, 0)">
+        <rect width="230" height="110" rx="10" fill="#0f172a" stroke="#334155"/>
+        <text x="115" y="28" font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">최종 평가 (30일차)</text>
+        <text x="115" y="58" font-size="32" font-weight="800" fill="#10b981" text-anchor="middle">520</text>
+        <text x="115" y="80" font-size="12" fill="#94a3b8" text-anchor="middle">달성률 105%</text>
+        <text x="115" y="98" font-size="11" fill="#10b981" text-anchor="middle">✔ 목표 달성 → 유지</text>
+      </g>
+    </g>
+  </g>
+
+  <g stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arr)" stroke-opacity="0.5">
+    <line x1="570" y1="220" x2="620" y2="220"/>
+  </g>
+
+  <g transform="translate(50, 350)" font-family="-apple-system, sans-serif" filter="url(#shadow)">
+    <rect width="1300" height="200" rx="14" fill="#1e293b" stroke="#475569"/>
+    <text x="30" y="38" font-size="18" font-weight="700" fill="#22d3ee">③ 달성률별 자동 판정</text>
+
+    <g transform="translate(30, 60)">
+      <g transform="translate(0, 0)">
+        <rect width="240" height="120" rx="12" fill="#064e3b" stroke="#10b981" stroke-width="2"/>
+        <text x="120" y="32" font-size="14" font-weight="700" fill="#6ee7b7" text-anchor="middle">달성률 ≥ 120%</text>
+        <text x="120" y="66" font-size="22" font-weight="800" fill="#ffffff" text-anchor="middle">🚀 확대 (scale_up)</text>
+        <text x="120" y="94" font-size="12" fill="#a7f3d0" text-anchor="middle">더 투자 · 리소스 증대</text>
+      </g>
+
+      <g transform="translate(260, 0)">
+        <rect width="240" height="120" rx="12" fill="#0c4a6e" stroke="#22d3ee" stroke-width="2"/>
+        <text x="120" y="32" font-size="14" font-weight="700" fill="#67e8f9" text-anchor="middle">달성률 ≥ 100%</text>
+        <text x="120" y="66" font-size="22" font-weight="800" fill="#ffffff" text-anchor="middle">✔ 유지 (maintain)</text>
+        <text x="120" y="94" font-size="12" fill="#a5f3fc" text-anchor="middle">현 전략 유지</text>
+      </g>
+
+      <g transform="translate(520, 0)">
+        <rect width="240" height="120" rx="12" fill="#713f12" stroke="#fbbf24" stroke-width="2"/>
+        <text x="120" y="32" font-size="14" font-weight="700" fill="#fde68a" text-anchor="middle">달성률 ≥ 60%</text>
+        <text x="120" y="66" font-size="22" font-weight="800" fill="#ffffff" text-anchor="middle">🔁 반복개선</text>
+        <text x="120" y="94" font-size="12" fill="#fef3c7" text-anchor="middle">실행법 보완 (iterate)</text>
+      </g>
+
+      <g transform="translate(780, 0)">
+        <rect width="240" height="120" rx="12" fill="#7c2d12" stroke="#f97316" stroke-width="2"/>
+        <text x="120" y="32" font-size="14" font-weight="700" fill="#fdba74" text-anchor="middle">달성률 ≥ 30%</text>
+        <text x="120" y="66" font-size="22" font-weight="800" fill="#ffffff" text-anchor="middle">↩  방향전환</text>
+        <text x="120" y="94" font-size="12" fill="#fed7aa" text-anchor="middle">접근법 변경 (pivot)</text>
+      </g>
+
+      <g transform="translate(1040, 0)">
+        <rect width="220" height="120" rx="12" fill="#7f1d1d" stroke="#ef4444" stroke-width="2"/>
+        <text x="110" y="32" font-size="14" font-weight="700" fill="#fca5a5" text-anchor="middle">달성률 &lt; 30%</text>
+        <text x="110" y="66" font-size="22" font-weight="800" fill="#ffffff" text-anchor="middle">✖ 폐기 (kill)</text>
+        <text x="110" y="94" font-size="12" fill="#fecaca" text-anchor="middle">중단 · 리소스 재배치</text>
+      </g>
+    </g>
+  </g>
+
+  <g transform="translate(50, 580)" font-family="-apple-system, sans-serif" filter="url(#shadow)">
+    <rect width="1300" height="210" rx="14" fill="#1e293b" stroke="#475569"/>
+    <text x="30" y="38" font-size="18" font-weight="700" fill="#fbbf24">④ 판정 후 실행 — 오케스트레이터가 자동으로 다음 행동 실행</text>
+
+    <g transform="translate(30, 60)">
+      <g transform="translate(0, 0)">
+        <rect width="300" height="130" rx="10" fill="#0f172a" stroke="#334155"/>
+        <text x="20" y="28" font-size="13" font-weight="700" fill="#a78bfa">📋 태스크 자동 갱신</text>
+        <g font-size="12" fill="#cbd5e1">
+          <text x="20" y="52">• kanban.json 우선순위 재조정</text>
+          <text x="20" y="72">• 후속 태스크 자동 생성</text>
+          <text x="20" y="92">• 방향전환 시 기존 태스크 정리</text>
+          <text x="20" y="112">• 폐기 시 관련 브랜치 중단</text>
+        </g>
+      </g>
+
+      <g transform="translate(330, 0)">
+        <rect width="300" height="130" rx="10" fill="#0f172a" stroke="#334155"/>
+        <text x="20" y="28" font-size="13" font-weight="700" fill="#f0abfc">🗣  의사결정 회의 자동 소집</text>
+        <g font-size="12" fill="#cbd5e1">
+          <text x="20" y="52">• 방향전환 / 폐기 시 회의 트리거</text>
+          <text x="20" y="72">• 참여자 : CEO · PO · 담당자</text>
+          <text x="20" y="92">• 회의록 → docs/meetings/</text>
+          <text x="20" y="112">• 결정 → docs/decisions/</text>
+        </g>
+      </g>
+
+      <g transform="translate(660, 0)">
+        <rect width="300" height="130" rx="10" fill="#0f172a" stroke="#334155"/>
+        <text x="20" y="28" font-size="13" font-weight="700" fill="#67e8f9">📝 문서화 &amp; 전파</text>
+        <g font-size="12" fill="#cbd5e1">
+          <text x="20" y="52">• metrics.json에 결과 기록</text>
+          <text x="20" y="72">• 평가 리포트 생성</text>
+          <text x="20" y="92">• 대시보드 실시간 반영</text>
+          <text x="20" y="112">• 투자자 알림</text>
+        </g>
+      </g>
+
+      <g transform="translate(990, 0)">
+        <rect width="280" height="130" rx="10" fill="#0f172a" stroke="#334155"/>
+        <text x="20" y="28" font-size="13" font-weight="700" fill="#10b981">🔁 다음 사이클 준비</text>
+        <g font-size="12" fill="#cbd5e1">
+          <text x="20" y="52">• 확대 시 새 스프린트 계획</text>
+          <text x="20" y="72">• 반복개선 시 가설 재정의</text>
+          <text x="20" y="92">• 방향전환 시 새 이니셔티브</text>
+          <text x="20" y="112">• 학습 → 다음 기획에 반영</text>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

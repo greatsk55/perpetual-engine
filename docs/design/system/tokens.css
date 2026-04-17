@@ -1,0 +1,102 @@
+/* ============================================================
+ * Perpetual Engine Design Tokens — SSOT
+ * All mockup HTML files must reference these tokens only.
+ * Raw literal values (hex colors, px values, etc.) are forbidden
+ * in feature mockups. If a new value is needed, add it here first
+ * and bump the CHANGELOG in design-system.md.
+ * ============================================================ */
+
+:root {
+  /* ---------- Color · Neutral ---------- */
+  --color-bg-canvas: #0f172a;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-surface-inverse: #0f172a;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-divider: #f1f5f9;
+
+  /* ---------- Color · Text ---------- */
+  --color-text: #0f172a;
+  --color-text-muted: #64748b;
+  --color-text-subtle: #94a3b8;
+  --color-text-inverse: #e2e8f0;
+  --color-text-on-primary: #ffffff;
+
+  /* ---------- Color · Brand ---------- */
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-accent-500: #ec4899;
+  --color-accent-violet: #8b5cf6;
+  --gradient-primary: linear-gradient(90deg, #6366f1, #ec4899);
+  --gradient-hero: linear-gradient(135deg, #6366f1 0%, #8b5cf6 45%, #ec4899 100%);
+
+  /* ---------- Color · Semantic ---------- */
+  --color-success-bg: #dcfce7;
+  --color-success-fg: #166534;
+  --color-warning-bg: #fef3c7;
+  --color-warning-fg: #92400e;
+  --color-info-bg: #dbeafe;
+  --color-info-fg: #1e40af;
+  --color-danger: #ef4444;
+  --color-success: #10b981;
+
+  /* ---------- Spacing (4px scale) ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* ---------- Radius ---------- */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-2xl: 20px;
+  --radius-3xl: 42px;
+  --radius-phone: 54px;
+  --radius-pill: 999px;
+
+  /* ---------- Typography ---------- */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Segoe UI", sans-serif;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-base: 14px;
+  --text-lg: 15px;
+  --text-xl: 18px;
+  --text-2xl: 22px;
+  --text-3xl: 26px;
+  --text-4xl: 30px;
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --weight-regular: 400;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.08em;
+
+  /* ---------- Shadow ---------- */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-card: 0 4px 12px rgba(15, 23, 42, 0.04);
+  --shadow-float: 0 30px 80px rgba(0, 0, 0, 0.5);
+  --shadow-cta: 0 10px 24px rgba(99, 102, 241, 0.35);
+
+  /* ---------- Device Viewport ---------- */
+  --device-mobile-w: 390px;
+  --device-mobile-h: 844px;
+  --device-desktop-w: 1280px;
+  --device-desktop-h: 800px;
+
+  /* ---------- Z-Index ---------- */
+  --z-toolbar: 10;
+  --z-modal: 100;
+}

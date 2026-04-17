@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard · Desktop</title>
+  <link rel="stylesheet" href="../../system/components.css">
+  <style>
+    body { background: var(--color-bg-canvas); display: flex; align-items: center; justify-content: center; padding: var(--space-8); }
+    .dash-main {
+      flex: 1;
+      padding: var(--space-7) var(--space-8);
+      background: var(--color-surface-muted);
+      overflow: hidden;
+    }
+    .dash-main h1 { margin-bottom: var(--space-1); }
+    .dash-sub { color: var(--color-text-muted); font-size: var(--text-md); margin-bottom: var(--space-6); }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-5); }
+    .panels { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--space-4); }
+    .chart {
+      height: 180px;
+      background:
+        repeating-linear-gradient(0deg, var(--color-divider) 0 1px, transparent 1px 36px),
+        repeating-linear-gradient(90deg, var(--color-divider) 0 1px, transparent 1px 56px),
+        linear-gradient(180deg, rgba(99, 102, 241, 0.1), transparent);
+      border-radius: var(--radius-md);
+      position: relative;
+      overflow: hidden;
+    }
+    .chart svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div class="device-desktop">
+    <div class="device-desktop__chrome">
+      <div class="device-desktop__dot" style="background: var(--color-danger);"></div>
+      <div class="device-desktop__dot" style="background: #f59e0b;"></div>
+      <div class="device-desktop__dot" style="background: var(--color-success);"></div>
+      <div class="device-desktop__address">infinitepower.app/dashboard</div>
+    </div>
+    <div class="device-desktop__body">
+      <aside class="ip-sidebar">
+        <h2 class="ip-sidebar__title">Perpetual Engine</h2>
+        <div class="ip-nav-item ip-nav-item--active">📊 대시보드</div>
+        <div class="ip-nav-item">🗂️ 칸반보드</div>
+        <div class="ip-nav-item">👥 에이전트</div>
+        <div class="ip-nav-item">📈 메트릭스</div>
+        <div class="ip-nav-item">🎨 디자인</div>
+        <div class="ip-nav-item">💬 메시지</div>
+        <div class="ip-nav-item">⚙️ 설정</div>
+      </aside>
+      <main class="dash-main">
+        <h1 class="ip-h2">스프린트 현황</h1>
+        <div class="dash-sub">Sprint 12 · 2026-04-17 · 오후 3:42 업데이트</div>
+        <div class="kpi-grid">
+          <div class="ip-kpi"><div class="ip-kpi__label">진행 중</div><div class="ip-kpi__value">7</div><div class="ip-kpi__delta ip-kpi__delta--up">▲ 2 vs 어제</div></div>
+          <div class="ip-kpi"><div class="ip-kpi__label">완료</div><div class="ip-kpi__value">14</div><div class="ip-kpi__delta ip-kpi__delta--up">▲ 5 vs 어제</div></div>
+          <div class="ip-kpi"><div class="ip-kpi__label">블록됨</div><div class="ip-kpi__value">1</div><div class="ip-kpi__delta ip-kpi__delta--down">▼ 1 vs 어제</div></div>
+          <div class="ip-kpi"><div class="ip-kpi__label">속도 (SP/일)</div><div class="ip-kpi__value">3.2</div><div class="ip-kpi__delta ip-kpi__delta--up">▲ 0.4</div></div>
+        </div>
+        <div class="panels">
+          <div class="ip-panel">
+            <h2 class="ip-panel__title">배포 성공률</h2>
+            <div class="chart">
+              <svg viewBox="0 0 400 160" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0" stop-color="#6366f1" stop-opacity="0.5"/>
+                    <stop offset="1" stop-color="#6366f1" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path d="M0,110 L40,100 80,90 120,85 160,60 200,70 240,50 280,40 320,45 360,30 400,20 L400,160 L0,160 Z" fill="url(#g)"/>
+                <polyline fill="none" stroke="#6366f1" stroke-width="2.5"
+                  points="0,110 40,100 80,90 120,85 160,60 200,70 240,50 280,40 320,45 360,30 400,20"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ip-panel">
+            <h2 class="ip-panel__title">최근 태스크</h2>
+            <table class="ip-table">
+              <tr><th>ID</th><th>제목</th><th>담당</th><th>상태</th></tr>
+              <tr><td>T-128</td><td>로그인 UX 개편</td><td>Designer</td><td><span class="ip-badge ip-badge--success">완료</span></td></tr>
+              <tr><td>T-131</td><td>대시보드 KPI 추가</td><td>CTO</td><td><span class="ip-badge ip-badge--warning">진행 중</span></td></tr>
+              <tr><td>T-134</td><td>온보딩 카피</td><td>PO</td><td><span class="ip-badge ip-badge--success">완료</span></td></tr>
+              <tr><td>T-137</td><td>A/B 테스트</td><td>Marketer</td><td><span class="ip-badge ip-badge--info">대기</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

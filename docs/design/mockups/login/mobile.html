@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Login · Mobile</title>
+  <link rel="stylesheet" href="../../system/components.css">
+  <style>
+    body { background: var(--color-bg-canvas); display: flex; align-items: center; justify-content: center; padding: var(--space-8); }
+    /* Page-level composition only — no new tokens */
+    .login-status {
+      display: flex; justify-content: space-between;
+      padding: var(--space-5) var(--space-7) var(--space-2);
+      font-size: var(--text-base); font-weight: var(--weight-bold);
+      color: var(--color-text);
+    }
+    .login-body {
+      padding: var(--space-6);
+      display: flex; flex-direction: column; gap: var(--space-3);
+      flex: 1; min-height: 0;
+    }
+    .login-toggle {
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+    }
+    .login-toggle__lbl { font-size: var(--text-base); font-weight: var(--weight-semibold); color: var(--color-text); }
+    .login-toggle__sub { font-size: var(--text-sm); color: var(--color-text-muted); margin-top: 2px; }
+    .login-footer {
+      text-align: center;
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      padding: var(--space-4) 0 var(--space-5);
+    }
+    .login-footer a { color: var(--color-primary-500); text-decoration: none; font-weight: var(--weight-semibold); }
+    .spacer { flex: 1; }
+  </style>
+</head>
+<body>
+  <div class="device-mobile">
+    <div class="device-mobile__notch"></div>
+    <div class="device-mobile__screen">
+      <div class="login-status"><span>9:41</span><span>●●● 5G ◼</span></div>
+      <div class="ip-hero">
+        <h1 class="ip-hero__title">안녕하세요 👋</h1>
+        <p class="ip-hero__subtitle">Perpetual Engine 계정으로 로그인하세요</p>
+      </div>
+      <div class="login-body">
+        <div class="ip-field">
+          <div class="ip-field__label">이메일</div>
+          <div class="ip-field__value">you@example.com</div>
+        </div>
+        <div class="ip-field">
+          <div class="ip-field__label">비밀번호</div>
+          <div class="ip-field__value">••••••••••••</div>
+        </div>
+        <div class="login-toggle">
+          <div>
+            <div class="login-toggle__lbl">기기 기억</div>
+            <div class="login-toggle__sub">다음 번 자동 로그인</div>
+          </div>
+          <div class="ip-switch"></div>
+        </div>
+        <div class="spacer"></div>
+        <button class="ip-btn ip-btn--primary" style="width: 100%;">로그인 →</button>
+        <div class="login-footer">아직 계정이 없으신가요? <a>가입하기</a></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

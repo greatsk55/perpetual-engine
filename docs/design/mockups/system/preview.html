@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>System · Design System Preview</title>
+  <link rel="stylesheet" href="../../system/components.css">
+  <style>
+    /* preview-only layout; no new tokens, all values composed of existing system */
+    .wrap {
+      width: 1280px; min-height: 900px;
+      background: var(--color-surface);
+      padding: var(--space-8);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6);
+    }
+    .sec { border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); background: var(--color-surface); }
+    .sec h3 { margin: 0 0 var(--space-3); font-size: var(--text-base); font-weight: var(--weight-bold); color: var(--color-text); }
+    .swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
+    .sw { height: 60px; border-radius: var(--radius-md); border: 1px solid var(--color-border); display: flex; align-items: flex-end; padding: var(--space-2); font-size: var(--text-xs); color: var(--color-text-on-primary); font-weight: var(--weight-semibold); }
+    .type-row { display: flex; align-items: baseline; gap: var(--space-4); margin-bottom: var(--space-2); }
+    .type-row .lbl { font-size: var(--text-xs); color: var(--color-text-subtle); width: 60px; }
+    .spacing-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
+    .spacing-row .bar { background: var(--color-primary-500); height: 8px; border-radius: var(--radius-xs); }
+    .spacing-row .lbl { font-size: var(--text-xs); color: var(--color-text-subtle); width: 60px; }
+    .radius-row { display: flex; gap: var(--space-3); align-items: flex-end; flex-wrap: wrap; }
+    .radius-box { width: 72px; height: 72px; background: var(--gradient-primary); display: flex; align-items: flex-end; justify-content: center; padding: var(--space-1); font-size: var(--text-xs); color: var(--color-text-on-primary); font-weight: var(--weight-semibold); }
+    .shadow-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
+    .shadow-box { height: 80px; background: var(--color-surface); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: var(--text-xs); color: var(--color-text-muted); }
+    .comp-row { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; }
+    .title-row { grid-column: 1 / -1; }
+    .title-row h1 { margin: 0 0 var(--space-1); }
+    .title-row p { margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="title-row">
+      <h1 class="ip-h1">Perpetual Engine Design System</h1>
+      <p class="ip-muted">v0.1.0 · 2026-04-17 · 모든 피처 목업은 이 시스템을 기반으로 생성</p>
+    </div>
+
+    <!-- Colors -->
+    <div class="sec">
+      <h3>Color · Brand</h3>
+      <div class="swatches">
+        <div class="sw" style="background: var(--color-primary-500);">primary-500</div>
+        <div class="sw" style="background: var(--color-primary-600);">primary-600</div>
+        <div class="sw" style="background: var(--color-accent-500);">accent-500</div>
+        <div class="sw" style="background: var(--color-accent-violet);">accent-violet</div>
+        <div class="sw" style="background: var(--gradient-primary); grid-column: span 2;">gradient-primary</div>
+        <div class="sw" style="background: var(--gradient-hero); grid-column: span 2;">gradient-hero</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Color · Neutral & Semantic</h3>
+      <div class="swatches">
+        <div class="sw" style="background: var(--color-surface-inverse);">surface-inverse</div>
+        <div class="sw" style="background: var(--color-text-muted);">text-muted</div>
+        <div class="sw" style="background: var(--color-border-strong); color: var(--color-text);">border-strong</div>
+        <div class="sw" style="background: var(--color-surface-muted); color: var(--color-text);">surface-muted</div>
+        <div class="sw" style="background: var(--color-success);">success</div>
+        <div class="sw" style="background: var(--color-danger);">danger</div>
+        <div class="sw" style="background: var(--color-warning-bg); color: var(--color-warning-fg);">warning</div>
+        <div class="sw" style="background: var(--color-info-bg); color: var(--color-info-fg);">info</div>
+      </div>
+    </div>
+
+    <!-- Typography -->
+    <div class="sec">
+      <h3>Typography Scale</h3>
+      <div class="type-row"><span class="lbl">4xl 30</span><span style="font-size: var(--text-4xl); font-weight: var(--weight-extrabold); letter-spacing: var(--tracking-tight);">안녕하세요 👋</span></div>
+      <div class="type-row"><span class="lbl">3xl 26</span><span style="font-size: var(--text-3xl); font-weight: var(--weight-extrabold);">Dashboard</span></div>
+      <div class="type-row"><span class="lbl">2xl 22</span><span style="font-size: var(--text-2xl); font-weight: var(--weight-bold);">Heading</span></div>
+      <div class="type-row"><span class="lbl">xl 18</span><span style="font-size: var(--text-xl); font-weight: var(--weight-bold);">Section</span></div>
+      <div class="type-row"><span class="lbl">lg 15</span><span style="font-size: var(--text-lg); font-weight: var(--weight-semibold);">Button label</span></div>
+      <div class="type-row"><span class="lbl">base 14</span><span style="font-size: var(--text-base);">본문 텍스트입니다.</span></div>
+      <div class="type-row"><span class="lbl">md 13</span><span style="font-size: var(--text-md);">Table row / nav item</span></div>
+      <div class="type-row"><span class="lbl">sm 12</span><span style="font-size: var(--text-sm); color: var(--color-text-muted);">Secondary</span></div>
+      <div class="type-row"><span class="lbl">xs 11</span><span class="ip-label">LABEL · UPPERCASE</span></div>
+    </div>
+
+    <!-- Spacing -->
+    <div class="sec">
+      <h3>Spacing (4px scale)</h3>
+      <div class="spacing-row"><span class="lbl">space-1</span><div class="bar" style="width: var(--space-1);"></div></div>
+      <div class="spacing-row"><span class="lbl">space-2</span><div class="bar" style="width: var(--space-2);"></div></div>
+      <div class="spacing-row"><span class="lbl">space-3</span><div class="bar" style="width: var(--space-3);"></div></div>
+      <div class="spacing-row"><span class="lbl">space-4</span><div class="bar" style="width: var(--space-4);"></div></div>
+      <div class="spacing-row"><span class="lbl">space-5</span><div class="bar" style="width: var(--space-5);"></div></div>
+      <div class="spacing-row"><span class="lbl">space-6</span><div class="bar" style="width: var(--space-6);"></div></div>
+      <div class="spacing-row"><span class="lbl">space-7</span><div class="bar" style="width: var(--space-7);"></div></div>
+      <div class="spacing-row"><span class="lbl">space-8</span><div class="bar" style="width: var(--space-8);"></div></div>
+      <div class="spacing-row"><span class="lbl">space-10</span><div class="bar" style="width: var(--space-10);"></div></div>
+    </div>
+
+    <!-- Radius -->
+    <div class="sec">
+      <h3>Radius</h3>
+      <div class="radius-row">
+        <div class="radius-box" style="border-radius: var(--radius-xs);">xs 4</div>
+        <div class="radius-box" style="border-radius: var(--radius-sm);">sm 6</div>
+        <div class="radius-box" style="border-radius: var(--radius-md);">md 8</div>
+        <div class="radius-box" style="border-radius: var(--radius-lg);">lg 12</div>
+        <div class="radius-box" style="border-radius: var(--radius-xl);">xl 14</div>
+        <div class="radius-box" style="border-radius: var(--radius-2xl);">2xl 20</div>
+        <div class="radius-box" style="border-radius: var(--radius-pill);">pill</div>
+      </div>
+    </div>
+
+    <!-- Shadow -->
+    <div class="sec">
+      <h3>Shadow</h3>
+      <div class="shadow-row">
+        <div class="shadow-box" style="box-shadow: var(--shadow-xs);">shadow-xs</div>
+        <div class="shadow-box" style="box-shadow: var(--shadow-card);">shadow-card</div>
+        <div class="shadow-box" style="box-shadow: var(--shadow-cta);">shadow-cta</div>
+        <div class="shadow-box" style="box-shadow: var(--shadow-float); background: var(--color-surface-inverse); color: var(--color-text-inverse);">shadow-float</div>
+      </div>
+    </div>
+
+    <!-- Components · Buttons & Badges -->
+    <div class="sec">
+      <h3>Buttons & Badges</h3>
+      <div class="comp-row">
+        <button class="ip-btn ip-btn--primary">Primary CTA</button>
+        <button class="ip-btn ip-btn--ghost">Secondary</button>
+        <span class="ip-badge ip-badge--success">완료</span>
+        <span class="ip-badge ip-badge--warning">진행 중</span>
+        <span class="ip-badge ip-badge--info">대기</span>
+      </div>
+    </div>
+
+    <!-- Components · Cards/Fields -->
+    <div class="sec">
+      <h3>Card / Field / Switch</h3>
+      <div class="comp-row" style="align-items: stretch;">
+        <div class="ip-card" style="width: 240px;">
+          <div class="ip-h3">Card Title</div>
+          <p class="ip-muted" style="margin: var(--space-2) 0 0; font-size: var(--text-sm);">간단한 카드 본문 텍스트.</p>
+        </div>
+        <div class="ip-field" style="width: 240px;">
+          <div class="ip-field__label">이메일</div>
+          <div class="ip-field__value">you@example.com</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-xl);">
+          <span class="ip-body" style="font-weight: var(--weight-semibold);">기기 기억</span>
+          <div class="ip-switch"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Components · KPI -->
+    <div class="sec" style="grid-column: 1 / -1;">
+      <h3>KPI Tiles</h3>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4);">
+        <div class="ip-kpi"><div class="ip-kpi__label">진행 중</div><div class="ip-kpi__value">7</div><div class="ip-kpi__delta ip-kpi__delta--up">▲ 2</div></div>
+        <div class="ip-kpi"><div class="ip-kpi__label">완료</div><div class="ip-kpi__value">14</div><div class="ip-kpi__delta ip-kpi__delta--up">▲ 5</div></div>
+        <div class="ip-kpi"><div class="ip-kpi__label">블록됨</div><div class="ip-kpi__value">1</div><div class="ip-kpi__delta ip-kpi__delta--down">▼ 1</div></div>
+        <div class="ip-kpi"><div class="ip-kpi__label">속도 (SP/일)</div><div class="ip-kpi__value">3.2</div><div class="ip-kpi__delta ip-kpi__delta--up">▲ 0.4</div></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
