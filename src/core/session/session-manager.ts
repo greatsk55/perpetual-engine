@@ -5,8 +5,9 @@ import { TmuxAdapter } from './tmux-adapter.js';
 import { tryAutoInstallTmux } from './tmux-installer.js';
 import { PromptBuilder } from '../agent/prompt-builder.js';
 import type { AgentConfig, AgentSession, AgentStatus } from '../agent/agent-types.js';
-import type { Task } from '../state/types.js';
+import type { Task, WorkflowPhase } from '../state/types.js';
 import type { ProjectConfig } from '../project/config.js';
+import type { ComponentSpec } from '../workflow/components.js';
 import { logger } from '../../utils/logger.js';
 
 /**
@@ -97,8 +98,12 @@ export class SessionManager {
     expectedOutputs?: string[];
     /** 페이즈 완료 조건 문구 (Phase.completionCriteria) */
     completionCriteria?: string;
+    /** 현재 워크플로우 페이즈 — PromptBuilder 가 페이즈별 룰(컴포넌트 단위 TDD 등)을 주입한다 */
+    phaseName?: WorkflowPhase;
+    /** 컴포넌트 페이즈일 때 어떤 컴포넌트를 다루는지 — 5종 테스트 경로/구현 경로를 프롬프트에 노출 */
+    componentSpec?: ComponentSpec;
   }): Promise<AgentSession> {
-    const { agent, config, task, contextDocs, kanbanSummary, projectRoot, message, expectedOutputs, completionCriteria } = params;
+    const { agent, config, task, contextDocs, kanbanSummary, projectRoot, message, expectedOutputs, completionCriteria, phaseName, componentSpec } = params;
     const sessionName = agent.role;
 
     // 이미 실행 중인지 확인
@@ -114,6 +119,8 @@ export class SessionManager {
       task,
       contextDocs,
       kanbanSummary,
+      phaseName,
+      componentSpec,
     });
 
     // Claude Code CLI 명령어 구성

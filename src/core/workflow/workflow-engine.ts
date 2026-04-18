@@ -1,4 +1,12 @@
-import { WORKFLOW_PHASES, getPhase, type Phase } from './phases.js';
+import {
+  buildPhases,
+  findPhase,
+  phaseInstanceKey,
+  resolvePhaseAlias,
+  DEFAULT_PHASE_TIMEOUT_MS,
+  type Phase,
+} from './phases.js';
+import { readComponentManifest } from './components.js';
 import { SessionManager } from '../session/session-manager.js';
 import { AgentRegistry } from '../agent/agent-registry.js';
 import { KanbanManager } from '../state/kanban.js';
@@ -44,32 +52,43 @@ export class WorkflowEngine {
   private static MAX_PHASE_RETRIES = 2;
 
   async runWorkflow(task: Task, signal?: AbortSignal): Promise<void> {
-    const startPhase: WorkflowPhase = task.phase ?? 'planning';
-    let currentPhaseName: WorkflowPhase | null = startPhase;
-    // 모든 페이즈가 정상 종료(nextPhase=null 까지 도달)한 경우에만 true.
-    // break 로 중단된 경우는 실패로 간주해서 todo 로 복구한다.
+    const taskSlug = String(task.id).toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const startPhase: WorkflowPhase = resolvePhaseAlias(task.phase) ?? 'planning';
+
+    // 매니페스트는 development-plan 이 산출하므로 시작 시점에는 없을 수 있다.
+    // 페이즈 배열은 매니페스트 유무에 따라 동적으로 펼쳐진다.
+    let manifest = await readComponentManifest(this.projectRoot, taskSlug);
+    let phases = buildPhases(taskSlug, manifest);
+
+    // 시작 페이즈를 페이즈 배열에서 찾아 인덱스로 진입한다.
+    // 동일 name 의 페이즈가 여러 개일 수 있으므로 (development-component) 처음 인스턴스를 사용.
+    let cursor = findPhase(phases, startPhase)?.index ?? 0;
+
     let workflowSucceeded = false;
-    const retryCount: Map<WorkflowPhase, number> = new Map();
+    const retryCount: Map<string, number> = new Map();
 
     const aborted = () => signal?.aborted === true;
 
     try {
-      while (currentPhaseName) {
+      while (cursor < phases.length) {
         if (aborted()) break;
-        const phase = getPhase(currentPhaseName);
-        if (!phase) break;
+        const phase = phases[cursor];
 
-        // 재시도 횟수 체크
-        const attempts = retryCount.get(phase.name) ?? 0;
+        // 재시도 횟수 체크 — 컴포넌트 페이즈는 instanceKey 가 다르면 별도로 카운트
+        const retryKey = phaseInstanceKey(phase);
+        const attempts = retryCount.get(retryKey) ?? 0;
         if (attempts >= WorkflowEngine.MAX_PHASE_RETRIES) {
-          logger.error(`[${task.id}] ${phase.name} 최대 재시도 횟수(${WorkflowEngine.MAX_PHASE_RETRIES}) 초과`);
+          logger.error(`[${task.id}] ${retryKey} 최대 재시도 횟수(${WorkflowEngine.MAX_PHASE_RETRIES}) 초과`);
           break;
         }
-        retryCount.set(phase.name, attempts + 1);
+        retryCount.set(retryKey, attempts + 1);
 
-        logger.step(`[${task.id}] ${phase.name} 페이즈 시작 (담당: ${phase.leadAgent})${attempts > 0 ? ` [재시도 ${attempts}/${WorkflowEngine.MAX_PHASE_RETRIES}]` : ''}`);
+        const labelSuffix = phase.instanceKey ? `(${phase.instanceKey})` : '';
+        logger.step(
+          `[${task.id}] ${phase.name}${labelSuffix} 페이즈 시작 (담당: ${phase.leadAgent})` +
+            (attempts > 0 ? ` [재시도 ${attempts}/${WorkflowEngine.MAX_PHASE_RETRIES}]` : ''),
+        );
 
-        // 태스크 상태 업데이트 (페이즈별 칸반 상태 + 담당 에이전트 반영)
         await this.kanban.updateTaskPhase(task.id, phase.name, phase.leadAgent);
         if (aborted()) break;
         await this.kanban.moveTask(task.id, phase.taskStatus);
@@ -79,17 +98,41 @@ export class WorkflowEngine {
         if (aborted()) break;
 
         if (success) {
-          logger.success(`[${task.id}] ${phase.name} 페이즈 완료`);
-          currentPhaseName = phase.nextPhase;
-          if (currentPhaseName === null) {
-            // 마지막 페이즈까지 정상 완료
+          logger.success(`[${task.id}] ${phase.name}${labelSuffix} 페이즈 완료`);
+
+          // development-plan 직후 매니페스트가 새로 생겼다면 페이즈 배열을 재구축해서
+          // development-component (N개) + development-integrate 를 펼친다.
+          if (phase.name === 'development-plan' && !manifest) {
+            const fresh = await readComponentManifest(this.projectRoot, taskSlug);
+            if (fresh) {
+              manifest = fresh;
+              phases = buildPhases(taskSlug, manifest);
+              const next = findPhase(phases, 'development-component');
+              cursor = next ? next.index : cursor + 1;
+              logger.info(
+                `[${task.id}] 컴포넌트 매니페스트 로드 — ${manifest.components.length}개 컴포넌트로 페이즈 펼침`,
+              );
+              continue;
+            }
+            logger.warn(`[${task.id}] development-plan 완료했으나 매니페스트 누락 — 다음 페이즈로 직진`);
+          }
+
+          cursor += 1;
+          if (cursor >= phases.length) {
             workflowSucceeded = true;
           }
         } else if (phase.onFailure) {
-          logger.warn(`[${task.id}] ${phase.name} 실패 → ${phase.onFailure}로 재시도`);
-          currentPhaseName = phase.onFailure;
+          logger.warn(`[${task.id}] ${phase.name}${labelSuffix} 실패 → ${phase.onFailure} 로 재시도`);
+          // 재시도는 같은 instance 로 재진입한다.
+          const retryTarget = findPhase(phases, phase.onFailure, phase.instanceKey)
+            ?? findPhase(phases, phase.onFailure);
+          if (!retryTarget) {
+            logger.error(`[${task.id}] ${phase.onFailure} 페이즈를 찾을 수 없어 회귀 불가`);
+            break;
+          }
+          cursor = retryTarget.index;
         } else {
-          logger.error(`[${task.id}] ${phase.name} 실패, 회귀 불가`);
+          logger.error(`[${task.id}] ${phase.name}${labelSuffix} 실패, 회귀 불가`);
           break;
         }
       }
@@ -185,10 +228,6 @@ ${metricsList}
       return false;
     }
 
-    const taskSlug = String(task.id).toLowerCase().replace(/[^a-z0-9]/g, '-');
-    const contextDocs = phase.inputDocPaths(taskSlug);
-    const outputPaths = phase.outputDocPaths(taskSlug);
-
     // 칸반 현황 생성
     const allTasks = await this.kanban.getAllTasks();
     const { PromptBuilder } = await import('../agent/prompt-builder.js');
@@ -200,25 +239,29 @@ ${metricsList}
       agent,
       config: this.config,
       task,
-      contextDocs,
+      contextDocs: phase.inputDocPaths,
       kanbanSummary,
       projectRoot: this.projectRoot,
-      expectedOutputs: outputPaths,
+      expectedOutputs: phase.outputDocPaths,
       completionCriteria: phase.completionCriteria,
+      phaseName: phase.name,
+      componentSpec: phase.componentContext,
     });
 
-    // 세션 완료 대기 (폴링)
-    const completed = await this.waitForCompletion(agent.role, undefined, signal);
+    // 세션 완료 대기 (폴링) — 페이즈별 타임아웃 적용
+    const timeoutMs = phase.timeoutMs ?? DEFAULT_PHASE_TIMEOUT_MS;
+    const completed = await this.waitForCompletion(agent.role, timeoutMs, signal);
     if (!completed) return false;
     if (signal?.aborted) return false;
 
     // 산출물 존재 여부 검증
-    if (outputPaths.length === 0) return true;
+    if (phase.outputDocPaths.length === 0) return true;
 
-    const missing = await this.checkOutputs(outputPaths);
+    const missing = await this.checkOutputs(phase.outputDocPaths);
     if (missing.length === 0) return true;
 
-    logger.error(`[${task.id}] ${phase.name} 산출물 누락: ${missing.join(', ')}`);
+    const label = phase.instanceKey ? `${phase.name}(${phase.instanceKey})` : phase.name;
+    logger.error(`[${task.id}] ${label} 산출물 누락: ${missing.join(', ')}`);
     return false;
   }
 

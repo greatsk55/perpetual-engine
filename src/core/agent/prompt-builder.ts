@@ -1,6 +1,7 @@
 import type { AgentConfig } from './agent-types.js';
-import type { Task } from '../state/types.js';
+import type { Task, WorkflowPhase } from '../state/types.js';
 import type { ProjectConfig } from '../project/config.js';
+import type { ComponentSpec } from '../workflow/components.js';
 
 export class PromptBuilder {
   buildSystemPrompt(params: {
@@ -9,8 +10,10 @@ export class PromptBuilder {
     task?: Task;
     contextDocs?: string[];
     kanbanSummary?: string;
+    phaseName?: WorkflowPhase;
+    componentSpec?: ComponentSpec;
   }): string {
-    const { agent, config, task, contextDocs, kanbanSummary } = params;
+    const { agent, config, task, contextDocs, kanbanSummary, phaseName, componentSpec } = params;
     const parts: string[] = [];
 
     // 에이전트 기본 프롬프트
@@ -65,6 +68,10 @@ ${contextDocs.map(d => `- ${d}`).join('\n')}`);
 
     // 메트릭스 기반 기획 룰
     parts.push(this.buildMetricsRules());
+
+    // 페이즈별 룰 (development-* 페이즈는 컴포넌트 단위 TDD 강제)
+    const phaseRule = this.buildPhaseRules(phaseName, componentSpec);
+    if (phaseRule) parts.push(phaseRule);
 
     // 회의 & 자문 가이드
     parts.push(this.buildMeetingAndConsultationGuide());
@@ -245,6 +252,132 @@ ${contextDocs.map(d => `- ${d}`).join('\n')}`);
 - 메트릭스 계획은 기획 문서 안에 포함 (docs/planning/feature-*.md)
 - 평가 리포트는 docs/metrics/eval-{task-id}-{date}.md에 작성
 - metrics.json에 구조화된 데이터 저장 (자동 관리)`;
+  }
+
+  /**
+   * 페이즈별 룰 — 현재 워크플로우 페이즈에 따라 추가 규칙을 주입한다.
+   *
+   * `development-*` 페이즈는 컴포넌트 단위 TDD 와 5종 테스트(unit/UI/snapshot/integration/E2E)
+   * 를 강제한다. 도구는 tech-stack.md 의 test_runners 를 그대로 사용한다.
+   */
+  private buildPhaseRules(phase?: WorkflowPhase, component?: ComponentSpec): string | null {
+    if (!phase) return null;
+
+    if (phase === 'development-plan') {
+      return `\n\n## development-plan 페이즈 규칙 (필수)
+
+이 페이즈에서는 **코드를 한 줄도 구현하지 않는다.** 분해와 계획만 산출한다.
+
+### 산출물 (정확한 경로 + 정확한 형식)
+1. \`docs/development/feature-<task-slug>/tech-stack.md\` — 사람용 기술 스택 설명
+   - 선택한 framework 와 그 이유
+   - 5종 테스트 도구(unit/UI/snapshot/integration/E2E) 각각의 선택 근거
+   - 빌드/패키지 매니저/타깃 런타임
+2. \`docs/development/feature-<task-slug>/components.json\` — 워크플로우 엔진이 파싱하는 매니페스트 (\`src/core/workflow/components.ts\` 의 \`ComponentManifest\` 스키마 정확히 준수)
+
+### components.json 형식
+\`\`\`json
+{
+  "version": 1,
+  "task_id": "<현재 태스크 ID>",
+  "tech_stack": {
+    "framework": "예: react+vite",
+    "test_runners": {
+      "unit": "예: vitest",
+      "ui": "예: @testing-library/react",
+      "snapshot": "예: vitest snapshot",
+      "integration": "예: vitest + msw",
+      "e2e": "예: playwright"
+    },
+    "notes": "선택사항"
+  },
+  "components": [
+    {
+      "name": "LoginButton",
+      "slug": "login-button",
+      "description": "한 문장 책임",
+      "implementation_paths": ["workspace/src/components/LoginButton.tsx"],
+      "test_paths": {
+        "unit": "workspace/src/components/__tests__/LoginButton.test.ts",
+        "ui": "workspace/src/components/__tests__/LoginButton.ui.test.tsx",
+        "snapshot": "workspace/src/components/__tests__/__snapshots__/LoginButton.snap",
+        "integration": "workspace/tests/integration/login-button.integration.test.ts",
+        "e2e": "workspace/tests/e2e/login-button.e2e.spec.ts"
+      },
+      "dependencies": []
+    }
+  ]
+}
+\`\`\`
+
+### 컴포넌트 분해 원칙
+- **최소 단위로 쪼갠다**: 한 컴포넌트는 5–15분 안에 구현 가능한 크기
+- **slug 는 a-z0-9-** 만 사용. 중복 금지.
+- **의존성 순서로 정렬**: 의존하는 컴포넌트가 배열에서 더 앞에 와야 한다
+- **5종 테스트 경로를 컴포넌트마다 모두 지정** — 누락하면 매니페스트는 거부된다
+- 테스트 도구는 tech_stack.test_runners 와 일치해야 한다
+
+이 페이즈를 마치면 워크플로우 엔진이 매니페스트를 읽어 development-component 페이즈를 컴포넌트 수만큼 펼친다.`;
+    }
+
+    if (phase === 'development-component') {
+      const ctx = component
+        ? `\n\n### 이번 세션 대상 컴포넌트
+- 이름: **${component.name}** (slug: \`${component.slug}\`)
+- 책임: ${component.description}
+- 구현 파일: ${component.implementation_paths.map(p => `\`${p}\``).join(', ')}
+- 5종 테스트 경로 (정확히 이 경로에 작성):
+  - unit:        \`${component.test_paths.unit}\`
+  - ui:          \`${component.test_paths.ui}\`
+  - snapshot:    \`${component.test_paths.snapshot}\`
+  - integration: \`${component.test_paths.integration}\`
+  - e2e:         \`${component.test_paths.e2e}\`${component.dependencies && component.dependencies.length > 0 ? `\n- 의존: ${component.dependencies.map(d => `\`${d}\``).join(', ')}` : ''}`
+        : '';
+
+      return `\n\n## development-component 페이즈 규칙 (필수)
+
+**한 번에 단 하나의 컴포넌트만 구현한다.** 다른 컴포넌트는 절대 건드리지 않는다.${ctx}
+
+### 5종 테스트 작성 원칙 (절대 규칙)
+모든 컴포넌트는 다음 5종 테스트를 **전부** 작성하고 통과시켜야 완료로 인정된다. 도구는 \`docs/development/feature-<task-slug>/tech-stack.md\` 의 \`test_runners\` 를 그대로 쓴다.
+
+| 종류 | 검증 대상 |
+|------|----------|
+| unit | 순수 함수·로직·상태 변환 |
+| ui | 렌더링, 사용자 상호작용 (예: RTL/Vue Test Utils 등) |
+| snapshot | 시각적 회귀 (DOM/컴포넌트 트리 스냅샷) |
+| integration | 다른 컴포넌트/모듈/외부(mock) 와의 결합 |
+| e2e | 실제 브라우저/디바이스에서 사용자 플로우 (예: Playwright/Cypress) |
+
+### TDD 작업 순서 (권장)
+1. 5종 테스트 파일을 먼저 빈 셸로 만들고, 각 시나리오를 적는다 (failing tests).
+2. 구현 파일을 만들어 unit → ui → integration → snapshot → e2e 순서로 통과시킨다.
+3. 모든 테스트가 통과하면 짧은 커밋 메시지와 함께 종료한다.
+
+### 금지 사항
+- 5종 중 하나라도 누락한 채 페이즈 종료 금지 — 워크플로우 엔진이 산출물 검증 단계에서 실패 처리한다.
+- 매니페스트(components.json) 수정 금지 — 분해는 development-plan 의 책임이다.
+- 다른 컴포넌트 파일 수정 금지 — 의존하는 컴포넌트가 부족하면 \`[미해결]\` 로 기록하고 자기 컴포넌트 범위에서만 처리한다.
+
+### 시간 관리
+- 이 세션의 타임아웃은 15분이다. 막히면 빠르게 \`[블로커]\` 로 메시지를 남기고 다음 컴포넌트로 넘어갈 수 있게 종료한다.`;
+    }
+
+    if (phase === 'development-integrate') {
+      return `\n\n## development-integrate 페이즈 규칙 (필수)
+
+이 페이즈에서는 새 컴포넌트를 만들지 않는다. **모든 컴포넌트를 통합**하고 전체 빌드/통합 테스트를 통과시킨다.
+
+### 산출물
+- \`docs/development/feature-<task-slug>.md\` — 통합 결과 요약, 빌드/테스트 결과, 미해결 이슈 목록
+
+### 작업
+1. tech-stack.md 의 빌드 명령으로 전체 빌드를 실행한다 (실패하면 원인 추적 후 수정).
+2. tech-stack.md 의 \`test_runners.integration\` 도구로 컴포넌트 간 상호작용 테스트를 실행한다.
+3. 통합 중 발견된 실패는 작은 패치로 해결한다 (큰 재설계는 새 태스크로).`;
+    }
+
+    return null;
   }
 
   /** 다중 참여자 회의 및 자문 전문가 요청 가이드 */

@@ -379,7 +379,7 @@ describe('E2E — Orchestrator 골든 패스', () => {
     expect(scriptContent).toContain('대형 회의');
   });
 
-  it('기동 시 in_progress 로 남은 고아 태스크를 저장된 phase 부터 재개한다', async () => {
+  it('기동 시 in_progress 로 남은 고아 태스크를 저장된 phase 부터 재개한다 (옛 development 는 development-plan 으로 마이그레이션)', async () => {
     // 1) 먼저 Orchestrator 없이 kanban 에 직접 in_progress 태스크를 박아둔다
     //    (이전 실행에서 비정상 종료된 상황 시뮬레이션)
     const paths = getProjectPaths(project.root);
@@ -393,7 +393,7 @@ describe('E2E — Orchestrator 골든 패스', () => {
       assignee: 'cto',
       created_by: 'po',
     });
-    // 실제 runWorkflow 가 하던 상태 전이를 수동으로 재현: phase=development + in_progress
+    // 실제 runWorkflow 가 하던 상태 전이를 수동으로 재현: 옛 phase=development + in_progress
     await kanban.updateTaskPhase(task.id, 'development', 'cto');
     await kanban.moveTask(task.id, 'in_progress');
 
@@ -409,9 +409,15 @@ describe('E2E — Orchestrator 골든 패스', () => {
 
     const ctoSession = mockTmux.findSession('cto')!;
     expect(ctoSession).toBeDefined();
-    // 재개 시 phase 는 저장된 값(development) 을 유지해야 한다
+
+    // 옛 development phase 는 새 분할 워크플로우의 첫 단계 development-plan 으로 자동 마이그레이션된다.
+    // (사용자 결정 a: 새 구조 배포 후 기존 진행분은 development-plan 부터 다시 시작)
+    await waitFor(
+      async () => (await kanban.getTask(task.id))?.phase === 'development-plan',
+      { timeoutMs: 3000, label: 'development → development-plan 마이그레이션' },
+    );
     const resumed = await kanban.getTask(task.id);
-    expect(resumed?.phase).toBe('development');
+    expect(resumed?.phase).toBe('development-plan');
   });
 
   it('기동 시 이미 tmux 세션이 살아있는 고아 태스크는 재개하지 않는다', async () => {

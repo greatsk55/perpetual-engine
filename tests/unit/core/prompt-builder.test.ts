@@ -71,3 +71,86 @@ describe('PromptBuilder 언어 룰 주입', () => {
     expect(bootIdx).toBeLessThan(metricsIdx);
   });
 });
+
+describe('PromptBuilder 페이즈별 룰', () => {
+  it('phaseName 미지정 시 페이즈 룰을 주입하지 않는다', () => {
+    const config = projectConfigSchema.parse({});
+    const builder = new PromptBuilder();
+    const prompt = builder.buildSystemPrompt({ agent: baseAgent, config });
+    expect(prompt).not.toContain('development-plan 페이즈 규칙');
+    expect(prompt).not.toContain('development-component 페이즈 규칙');
+  });
+
+  it('development-plan 페이즈는 매니페스트 산출 룰을 주입한다', () => {
+    const config = projectConfigSchema.parse({});
+    const builder = new PromptBuilder();
+    const prompt = builder.buildSystemPrompt({
+      agent: baseAgent,
+      config,
+      phaseName: 'development-plan',
+    });
+    expect(prompt).toContain('## development-plan 페이즈 규칙');
+    expect(prompt).toContain('components.json');
+    expect(prompt).toContain('tech-stack.md');
+    expect(prompt).toContain('코드를 한 줄도 구현하지 않는다');
+  });
+
+  it('development-component 페이즈는 5종 테스트 + 컴포넌트 컨텍스트를 주입한다', () => {
+    const config = projectConfigSchema.parse({});
+    const builder = new PromptBuilder();
+    const prompt = builder.buildSystemPrompt({
+      agent: baseAgent,
+      config,
+      phaseName: 'development-component',
+      componentSpec: {
+        name: 'LoginButton',
+        slug: 'login-button',
+        description: '로그인 버튼',
+        implementation_paths: ['workspace/src/LoginButton.tsx'],
+        test_paths: {
+          unit: 'workspace/src/__tests__/LoginButton.test.ts',
+          ui: 'workspace/src/__tests__/LoginButton.ui.test.tsx',
+          snapshot: 'workspace/src/__tests__/__snapshots__/LoginButton.snap',
+          integration: 'workspace/tests/integration/login-button.test.ts',
+          e2e: 'workspace/tests/e2e/login-button.spec.ts',
+        },
+      },
+    });
+    expect(prompt).toContain('## development-component 페이즈 규칙');
+    // 5종 테스트 키워드가 모두 등장해야 한다
+    expect(prompt).toContain('| unit |');
+    expect(prompt).toContain('| ui |');
+    expect(prompt).toContain('| snapshot |');
+    expect(prompt).toContain('| integration |');
+    expect(prompt).toContain('| e2e |');
+    // 컴포넌트 컨텍스트 주입
+    expect(prompt).toContain('LoginButton');
+    expect(prompt).toContain('login-button');
+    expect(prompt).toContain('workspace/tests/e2e/login-button.spec.ts');
+  });
+
+  it('development-integrate 페이즈는 통합 룰을 주입한다', () => {
+    const config = projectConfigSchema.parse({});
+    const builder = new PromptBuilder();
+    const prompt = builder.buildSystemPrompt({
+      agent: baseAgent,
+      config,
+      phaseName: 'development-integrate',
+    });
+    expect(prompt).toContain('## development-integrate 페이즈 규칙');
+    expect(prompt).toContain('새 컴포넌트를 만들지 않는다');
+  });
+
+  it('비-development 페이즈에는 페이즈 룰이 주입되지 않는다', () => {
+    const config = projectConfigSchema.parse({});
+    const builder = new PromptBuilder();
+    const prompt = builder.buildSystemPrompt({
+      agent: baseAgent,
+      config,
+      phaseName: 'planning',
+    });
+    expect(prompt).not.toContain('development-plan 페이즈 규칙');
+    expect(prompt).not.toContain('development-component 페이즈 규칙');
+    expect(prompt).not.toContain('development-integrate 페이즈 규칙');
+  });
+});

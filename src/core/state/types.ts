@@ -1,7 +1,27 @@
 export type TaskStatus = 'backlog' | 'todo' | 'in_progress' | 'review' | 'testing' | 'done' | 'suspended';
 export type TaskPriority = 'critical' | 'high' | 'medium' | 'low';
 export type TaskType = 'feature' | 'bug' | 'chore' | 'spike' | 'design' | 'marketing';
-export type WorkflowPhase = 'planning' | 'design' | 'development' | 'testing' | 'deployment' | 'documentation';
+/**
+ * 워크플로우 페이즈.
+ *
+ * `development` 페이즈는 컴포넌트 단위 TDD 흐름을 위해 3개로 분할되었다:
+ * - `development-plan`: CTO 가 기술 스택과 컴포넌트 분해를 산출 (`tech-stack.md` + `components.json`)
+ * - `development-component`: 컴포넌트마다 인스턴스화되어 5종 테스트(unit/UI/snapshot/integration/E2E) 까지 작성
+ * - `development-integrate`: 전체 통합 + 통합 빌드/테스트
+ *
+ * 옛 값 `development` 는 마이그레이션을 위해 타입에 남겨둔다 — 새 워크플로우 빌더는 이를
+ * `development-plan` 으로 재해석한다 ([resumeInFlightTasks](src/core/workflow/orchestrator.ts) 참고).
+ */
+export type WorkflowPhase =
+  | 'planning'
+  | 'design'
+  | 'development'
+  | 'development-plan'
+  | 'development-component'
+  | 'development-integrate'
+  | 'testing'
+  | 'deployment'
+  | 'documentation';
 
 export interface Task {
   id: string;
