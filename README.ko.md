@@ -69,9 +69,8 @@ perpetual-engine board    # 터미널 칸반보드
 ## 사전 요구사항
 
 - **Node.js** >= 18.0.0
-- **tmux** — 에이전트 병렬 세션 실행용
+- **tmux** — 에이전트 병렬 세션 실행용 (macOS/Homebrew 환경은 자동 설치, Linux 는 수동 설치 안내)
 - **Claude Code CLI** — 각 에이전트가 Claude Code 세션으로 동작
-- **[Pencil](https://www.pencil.dev/)** + **Pencil MCP** — Designer / Marketer 에이전트의 **필수** UI/UX 시안 도구
 
 ```bash
 # tmux 설치 (macOS)
@@ -81,19 +80,15 @@ brew install tmux
 sudo apt install tmux
 ```
 
-### Pencil 설치
+### 디자인 스택
 
-Designer / Marketer 에이전트는 모든 UI/UX·마케팅 시안을 [Pencil](https://www.pencil.dev/)로 생성합니다. Pencil이 설치되어 있지 않으면 디자인 페이즈가 동작하지 않습니다.
+Designer / Marketer 에이전트는 모든 시안을 **HTML + CSS 목업** 으로 생성합니다. Pencil / Figma 등 외부 디자인 툴은 사용하지 않으며 별도 설치도 필요 없습니다.
 
-1. **Pencil 앱 설치** — [pencil.dev](https://www.pencil.dev/)에서 운영체제에 맞는 설치 파일을 내려받습니다.
-   - macOS: `.dmg`
-   - Windows: 설치 관리자(installer)
-   - Linux: `.deb` 또는 `.AppImage` (X11 권장, Wayland/Hyprland에는 일부 이슈 있음)
-   - VS Code / Cursor 사용자는 Extensions 마켓플레이스에서 "Pencil"을 검색해 확장으로 설치할 수도 있습니다.
-2. **Pencil MCP 활성화** — **Pencil 앱을 실행하면 Pencil MCP 서버가 자동으로 시작**됩니다. 별도의 `claude mcp add` 명령이나 API 키 설정은 필요하지 않습니다.
-3. **확인** — Pencil 앱을 띄운 상태에서 `perpetual-engine start` 를 실행하면 Designer 에이전트가 Pencil MCP를 통해 `.pen` 시안을 `docs/design/mockups/` 와 `docs/marketing/mockups/` 에 생성합니다.
-
-> **주의:** 에이전트가 디자인 작업을 수행하는 동안 Pencil 앱은 계속 열려 있어야 합니다 (MCP 서버가 앱 프로세스와 함께 동작).
+- 디자인 시스템 SSOT: `docs/design/system/tokens.css`, `components.css`, `design-system.md`
+- 피처 목업: `docs/design/mockups/<feature>/*.html` + `meta.json`
+- 마케팅 목업: `docs/marketing/mockups/*.html` + `meta.json`
+- 렌더/탐색: 대시보드 상단 **Design** 탭 (또는 `http://localhost:3000/design`) — 줌/팬, 디바이스 필터, PNG 추출 지원
+- CTO 는 제품 코드에서 동일한 토큰(`var(--…)`) 과 `.ip-*` 컴포넌트를 재사용하여 디자인↔구현 정합성을 유지합니다
 
 ## 설치
 

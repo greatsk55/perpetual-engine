@@ -46,6 +46,8 @@ export class WorkflowEngine {
   async runWorkflow(task: Task, signal?: AbortSignal): Promise<void> {
     const startPhase: WorkflowPhase = task.phase ?? 'planning';
     let currentPhaseName: WorkflowPhase | null = startPhase;
+    // 모든 페이즈가 정상 종료(nextPhase=null 까지 도달)한 경우에만 true.
+    // break 로 중단된 경우는 실패로 간주해서 todo 로 복구한다.
     let workflowSucceeded = false;
     const retryCount: Map<WorkflowPhase, number> = new Map();
 
@@ -79,6 +81,10 @@ export class WorkflowEngine {
         if (success) {
           logger.success(`[${task.id}] ${phase.name} 페이즈 완료`);
           currentPhaseName = phase.nextPhase;
+          if (currentPhaseName === null) {
+            // 마지막 페이즈까지 정상 완료
+            workflowSucceeded = true;
+          }
         } else if (phase.onFailure) {
           logger.warn(`[${task.id}] ${phase.name} 실패 → ${phase.onFailure}로 재시도`);
           currentPhaseName = phase.onFailure;
@@ -87,8 +93,6 @@ export class WorkflowEngine {
           break;
         }
       }
-
-      workflowSucceeded = !aborted();
     } catch (err) {
       logger.error(`[${task.id}] 워크플로우 예외 발생: ${(err as Error).message}`);
     }
@@ -183,6 +187,7 @@ ${metricsList}
 
     const taskSlug = String(task.id).toLowerCase().replace(/[^a-z0-9]/g, '-');
     const contextDocs = phase.inputDocPaths(taskSlug);
+    const outputPaths = phase.outputDocPaths(taskSlug);
 
     // 칸반 현황 생성
     const allTasks = await this.kanban.getAllTasks();
@@ -190,7 +195,7 @@ ${metricsList}
     const builder = new PromptBuilder();
     const kanbanSummary = builder.buildKanbanSummary(allTasks);
 
-    // 에이전트 세션 시작
+    // 에이전트 세션 시작 — 산출물 경로/완료 조건을 명시해 파일명 불일치로 인한 재시도 루프 방지
     await this.sessionManager.startAgent({
       agent,
       config: this.config,
@@ -198,6 +203,8 @@ ${metricsList}
       contextDocs,
       kanbanSummary,
       projectRoot: this.projectRoot,
+      expectedOutputs: outputPaths,
+      completionCriteria: phase.completionCriteria,
     });
 
     // 세션 완료 대기 (폴링)
@@ -206,7 +213,6 @@ ${metricsList}
     if (signal?.aborted) return false;
 
     // 산출물 존재 여부 검증
-    const outputPaths = phase.outputDocPaths(taskSlug);
     if (outputPaths.length === 0) return true;
 
     const missing = await this.checkOutputs(outputPaths);

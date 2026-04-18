@@ -120,11 +120,12 @@ export function getDefaultAgentConfigs(): AgentConfig[] {
     {
       name: 'Designer',
       role: 'designer',
-      description: '디자인 총괄 - 디자인 시스템 구축/유지, UI/UX 디자인. HTML+CSS 목업으로 작업 (Pencil 사용 안 함)',
+      description: '디자인 총괄 - 디자인 시스템 구축/유지, UI/UX 디자인, 피치덱/슬라이드 템플릿. HTML+CSS(+JS) 목업으로 작업 (Pencil 사용 안 함)',
       responsibilities: [
         '프로젝트 초기에 디자인 시스템(tokens.css + components.css + design-system.md)을 먼저 확립',
         '디자인 시스템(토큰·컴포넌트·패턴)을 SSOT로 유지',
         '모든 피처 시안을 HTML + CSS 목업으로 생성 (docs/design/mockups/<feature>/)',
+        '피치덱·세일즈덱·프레젠테이션 슬라이드 템플릿도 HTML + CSS + 필요 시 vanilla JS 로 설계 (docs/design/mockups/<deck>/, device: slide)',
         '시스템의 토큰/컴포넌트만 사용 — 임의 리터럴 값 금지',
         '각 목업에 meta.json(feature/screen/device/flow/tokensUsed/componentsUsed) 동반',
         '주기적으로 디자인 시스템을 최신화·개선 (스프린트 회고/N개 시안마다)',
@@ -138,6 +139,8 @@ export function getDefaultAgentConfigs(): AgentConfig[] {
         '새 토큰/컴포넌트가 필요하면 tokens.css / components.css 에 먼저 추가하고 design-system.md CHANGELOG 에 기록',
         '각 피처 폴더에 meta.json 을 두어 device/feature/screen/flow/tokensUsed/componentsUsed 를 선언 (Design Canvas 자동 감지용)',
         '모바일은 .device-mobile, 데스크탑은 .device-desktop 래퍼로 감싸 실제 비율을 유지',
+        '슬라이드/피치덱은 .device-slide-16x9 래퍼(1920×1080 기준)로 감싸고 meta.json 의 device 를 "slide" 로 선언 — 필요 시 .device-slide-9x16(세로 스토리·모바일 공유용) 도 가능',
+        '슬라이드에서는 vanilla JS 사용 허용 (키보드 네비·카운터·차트 애니메이션 등) — 단 빌드 툴 금지, CDN <script> 직접 로드만 허용. 프로덕트 코드로 재사용되지 않음을 명시',
         'Pencil MCP / Figma 같은 외부 디자인 툴을 사용하지 않는다 — 결과물은 실제 렌더 가능한 HTML 이어야 한다',
         '스프린트 종료 또는 피처 시안 5개마다 디자인 시스템을 리뷰하여 drift/중복/개선 항목 반영',
         '접근성: 대비 WCAG AA(본문 4.5:1) 준수',
@@ -172,15 +175,59 @@ export function getDefaultAgentConfigs(): AgentConfig[] {
    - 중복 컴포넌트 병합, 사용되지 않는 토큰 정리, 접근성·일관성 개선
    - 변경은 design-system.md CHANGELOG 에 버전·날짜·변경 요약으로 남긴다
 
+## 프레젠테이션 · 피치덱 · 슬라이드 트랙
+투자 유치 피치덱, 세일즈덱, 온보딩 프레젠테이션 등 슬라이드형 시안도 같은 디자인 시스템 위에서 HTML + CSS(+ 필요 시 vanilla JS) 로 제작한다. **Keynote / PowerPoint 파일은 생성하지 않는다** — 산출물은 브라우저로 바로 여는 HTML.
+
+1. **위치 · 폴더**: docs/design/mockups/<deck-name>/ — 예: pitch-deck-seriesA/, sales-deck/, onboarding-deck/
+   - 슬라이드 파일명: slide-01-problem.html, slide-02-solution.html … 순서와 주제를 파일명에 포함
+   - 선택: index.html — 전체 슬라이드를 좌우 키(ArrowLeft/ArrowRight)·스페이스로 넘기는 네비 허브. 각 슬라이드를 iframe 또는 fetch 로 임베드
+   - meta.json — feature 는 deck 이름, device 는 "slide" 로 선언
+
+2. **레이아웃 래퍼 (디자인 시스템에 추가)**
+   - .device-slide-16x9 — 1920×1080 기본. 투자자용 노트북/모니터·프로젝터 기본
+   - .device-slide-9x16 — 1080×1920. LinkedIn/Instagram 스토리용 세로 덱
+   - .device-slide-4x3 — 1440×1080. 구형 프로젝터 대응 (선택)
+   - 필요하면 tokens.css 에 --slide-16x9-w/h, --slide-padding-x, --slide-padding-y 같은 토큰 추가 후 components.css 에 래퍼를 정의하고 design-system.md CHANGELOG 갱신
+
+3. **슬라이드 구조 패턴 (피치덱 기본 템플릿)**
+   각 슬라이드는 아래 중 하나의 레이아웃 클래스로 감싸 재사용성을 확보 (components.css 에 정의):
+   - .slide-title — 표지/섹션 구분 (대형 서체, 로고/태그라인)
+   - .slide-hero-stat — 단일 숫자 강조 (시장 규모·성장률 등)
+   - .slide-split-2 — 2컬럼 (좌: 문제, 우: 해결 / 좌: before, 우: after)
+   - .slide-bullets — 제목 + 불릿 3–5개 (핵심 메시지)
+   - .slide-flow — 프로세스/스텝 (1 → 2 → 3 → 4)
+   - .slide-table — 경쟁사 비교 표
+   - .slide-chart — 라인/바 차트 (vanilla JS + Canvas 또는 CDN chart.js 로드)
+   - .slide-team — 팀 멤버 카드 그리드
+   - .slide-cta — 마지막 ASK (투자 금액·컨택)
+
+4. **JS 허용 범위**
+   - vanilla JS 스크립트 블록 <script> 직접 삽입 가능 — 빌드 툴(vite/webpack 등) 금지
+   - 허용 용도: 키보드/클릭 네비, 카운터·진행률 애니메이션, Canvas 차트, 타이머 자동 재생
+   - CDN 스크립트 로드 허용 (chart.js, d3 등). **사내 프로덕트 코드와 공유되지 않음** — 슬라이드는 시연용이라는 점을 주석으로 명시
+   - 슬라이드 내 JS 로직은 프로덕트 구현의 레퍼런스가 아니며, CTO 는 이 JS 를 코드에 재사용하지 않는다
+
+5. **콘텐츠 대 템플릿 분담**
+   - Designer 는 **구조·레이아웃·비주얼 템플릿** 을 짠다 — 제목/플레이스홀더/차트 틀/숫자 자리
+   - 실제 문구·지표·팀 소개 등 **콘텐츠 채우기** 는 요청자(CEO·Marketer·PO) 가 기획 단계에서 결정한다
+   - Designer 는 placeholder 텍스트를 "[시장 규모: TAM $X]" 같은 명시적 플레이스홀더로 남겨 콘텐츠 담당자가 채우기 쉽게 한다
+
+6. **meta.json 예시** (feature/screens 키에 device:"slide" 로 선언):
+   - feature: pitch-deck-seriesA
+   - title: Series A 피치덱
+   - device: slide
+   - flow: 각 slide 파일을 순서대로 나열 (slide-01-title → slide-10-ask)
+   - screens: 파일별 title 오버라이드 가능 (예: slide-03-solution.html → "Solution · 해결 방식")
+
 ## Design Canvas
 모든 목업은 대시보드의 /design 페이지(Design Canvas)에서 자동 감지되어 줌/팬/PNG 추출 가능한 형태로 렌더된다. 목업은 단독으로 브라우저에 열어도 정상 렌더되어야 하며(새 브라우저 탭에서 iframe 없이 확인 가능), Design Canvas가 meta.json 을 스캔하므로 meta.json 이 없으면 목록에 나타나지 않는다.
 
 ## 공통 핵심 규칙
-1. 산출물은 항상 HTML + CSS 파일 — Pencil/Figma 등 외부 툴 사용 안 함
+1. 산출물은 항상 HTML + CSS (슬라이드는 + vanilla JS) 파일 — Pencil/Figma/Keynote/PPT 등 외부 툴 사용 안 함
 2. 작업 시작 전 기획 문서(docs/planning/)와 디자인 시스템(docs/design/system/)을 확인한다
 3. 시스템에 없는 스타일을 피처 시안에 쓰지 않는다 — 먼저 시스템에 추가
-4. 구현 가능성(CTO 가 동일 토큰으로 실제 제품 코드에 재현 가능해야 함)과 접근성(WCAG AA)을 고려한다
-5. 피처 폴더마다 meta.json 필수`,
+4. 구현 가능성(CTO 가 동일 토큰으로 실제 제품 코드에 재현 가능해야 함)과 접근성(WCAG AA)을 고려한다 — 단 슬라이드 전용 JS 는 재사용 대상 아님
+5. 피처/덱 폴더마다 meta.json 필수`,
       meeting_permissions: {
         can_schedule: false,
         can_participate: true,

@@ -70,7 +70,7 @@ describe('E2E — Orchestrator 골든 패스', () => {
     expect(mockTmux.getActiveSessionNames()).toHaveLength(0);
   });
 
-  it('autoStartCeo=true 일 때 CEO 에이전트 세션이 기동된다', async () => {
+  it('autoStartCeo=true 이고 프로젝트가 비어있으면 CEO 에이전트 세션이 기동된다', async () => {
     orchestrator = makeOrchestrator({ autoStartCeo: true });
     await orchestrator.start();
 
@@ -86,6 +86,47 @@ describe('E2E — Orchestrator 골든 패스', () => {
 
     await orchestrator.stop();
     expect(mockTmux.killCalls.length).toBeGreaterThan(0);
+  });
+
+  it('autoStartCeo 기본 정책은 기존 태스크가 있으면 CEO 기동을 건너뛴다', async () => {
+    const paths = getProjectPaths(project.root);
+    const kanban = new KanbanManager(paths.kanban);
+    await kanban.addTask({
+      title: '기존 태스크',
+      description: '',
+      type: 'feature',
+      priority: 'medium',
+      assignee: 'cto',
+      created_by: 'po',
+    });
+
+    orchestrator = makeOrchestrator({ autoStartCeo: true });
+    await orchestrator.start();
+
+    await sleep(150);
+    expect(mockTmux.findSession('ceo')).toBeUndefined();
+  });
+
+  it("autoStartCeo='always' 이면 기존 태스크가 있어도 CEO 를 강제 기동한다", async () => {
+    const paths = getProjectPaths(project.root);
+    const kanban = new KanbanManager(paths.kanban);
+    await kanban.addTask({
+      title: '기존 태스크',
+      description: '',
+      type: 'feature',
+      priority: 'medium',
+      assignee: 'cto',
+      created_by: 'po',
+    });
+
+    orchestrator = makeOrchestrator({ autoStartCeo: 'always' });
+    await orchestrator.start();
+
+    await waitFor(
+      () => mockTmux.findSession('ceo') !== undefined,
+      { timeoutMs: 2000, label: 'CEO 강제 기동' },
+    );
+    expect(mockTmux.findSession('ceo')).toBeDefined();
   });
 
   it('투자자 메시지 파일이 생성되면 Orchestrator 가 담당 에이전트 세션을 기동한다', async () => {
@@ -336,6 +377,109 @@ describe('E2E — Orchestrator 골든 패스', () => {
     expect(scriptContent).toContain('claude');
     expect(scriptContent).toContain('--append-system-prompt');
     expect(scriptContent).toContain('대형 회의');
+  });
+
+  it('기동 시 in_progress 로 남은 고아 태스크를 저장된 phase 부터 재개한다', async () => {
+    // 1) 먼저 Orchestrator 없이 kanban 에 직접 in_progress 태스크를 박아둔다
+    //    (이전 실행에서 비정상 종료된 상황 시뮬레이션)
+    const paths = getProjectPaths(project.root);
+    const kanban = new KanbanManager(paths.kanban);
+
+    const task = await kanban.addTask({
+      title: '중단된 개발 태스크',
+      description: '',
+      type: 'feature',
+      priority: 'high',
+      assignee: 'cto',
+      created_by: 'po',
+    });
+    // 실제 runWorkflow 가 하던 상태 전이를 수동으로 재현: phase=development + in_progress
+    await kanban.updateTaskPhase(task.id, 'development', 'cto');
+    await kanban.moveTask(task.id, 'in_progress');
+
+    // 2) 이제 Orchestrator 를 기동 → resumeInFlightTasks 가 고아를 픽업해야 한다
+    orchestrator = makeOrchestrator();
+    await orchestrator.start();
+
+    // cto 세션이 기동되어야 한다 (재개 경로로 디스패치됨)
+    await waitFor(
+      () => mockTmux.findSession('cto') !== undefined,
+      { timeoutMs: 3000, label: '고아 태스크 재개 세션 생성' },
+    );
+
+    const ctoSession = mockTmux.findSession('cto')!;
+    expect(ctoSession).toBeDefined();
+    // 재개 시 phase 는 저장된 값(development) 을 유지해야 한다
+    const resumed = await kanban.getTask(task.id);
+    expect(resumed?.phase).toBe('development');
+  });
+
+  it('기동 시 이미 tmux 세션이 살아있는 고아 태스크는 재개하지 않는다', async () => {
+    // 사전 조건: in_progress 태스크가 있고, 동시에 tmux 세션도 이미 존재
+    const paths = getProjectPaths(project.root);
+    const kanban = new KanbanManager(paths.kanban);
+
+    const task = await kanban.addTask({
+      title: '이미 실행 중인 태스크',
+      description: '',
+      type: 'feature',
+      priority: 'high',
+      assignee: 'cto',
+      created_by: 'po',
+    });
+    await kanban.updateTaskPhase(task.id, 'development', 'cto');
+    await kanban.moveTask(task.id, 'in_progress');
+
+    orchestrator = makeOrchestrator();
+
+    // Orchestrator.start() 이전에 mockTmux 에 cto 세션을 미리 만들어둔다.
+    // 기동 시 `isAgentRunning('cto')` 가 true 를 반환해서 재개가 건너뛰어지는지 검증.
+    await mockTmux.createSession('cto', 'sleep 60');
+
+    const beforeCreates = mockTmux.createCalls.filter(c => c.rawName === 'cto').length;
+    await orchestrator.start();
+
+    // 재개가 건너뛰어져야 한다 → cto 세션 create 가 추가로 발생하지 않는다
+    await sleep(200);
+    const afterCreates = mockTmux.createCalls.filter(c => c.rawName === 'cto').length;
+    expect(afterCreates).toBe(beforeCreates);
+  });
+
+  it('같은 역할(assignee) 태스크 2개가 동시에 들어와도 한 개만 디스패치되고 다른 하나는 대기한다', async () => {
+    orchestrator = makeOrchestrator();
+    await orchestrator.start();
+
+    const paths = getProjectPaths(project.root);
+    const kanban = new KanbanManager(paths.kanban);
+
+    // po 에게 할당된 두 태스크를 빠르게 연속 생성 → processNewTasks 가 병렬 디스패치 시도
+    await kanban.addTask({
+      title: 'po 태스크 A',
+      description: '',
+      type: 'feature',
+      priority: 'high',
+      assignee: 'po',
+      created_by: 'ceo',
+    });
+    await kanban.addTask({
+      title: 'po 태스크 B',
+      description: '',
+      type: 'feature',
+      priority: 'high',
+      assignee: 'po',
+      created_by: 'ceo',
+    });
+
+    // 첫 번째 po 세션이 뜰 때까지 대기
+    await waitFor(
+      () => mockTmux.findSession('po') !== undefined,
+      { timeoutMs: 3000, label: '첫 po 세션 생성' },
+    );
+
+    // 역할 직렬화: 동시에 같은 역할로 세션이 두 번 생성돼선 안 된다
+    await sleep(200);
+    const poCreates = mockTmux.createCalls.filter(c => c.rawName === 'po');
+    expect(poCreates.length).toBe(1);
   });
 
   it('stop() 은 모든 활성 세션을 종료하고 활성 자문가도 제거한다', async () => {

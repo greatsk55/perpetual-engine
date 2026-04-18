@@ -1,152 +1,187 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#0f172a"/>
-      <stop offset="100%" stop-color="#020617"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#262624"/>
+      <stop offset="100%" stop-color="#1F1E1C"/>
     </linearGradient>
-    <linearGradient id="coreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#7c3aed"/>
-      <stop offset="100%" stop-color="#3b82f6"/>
-    </linearGradient>
-    <linearGradient id="investorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f59e0b"/>
-      <stop offset="100%" stop-color="#ef4444"/>
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
-      <feOffset dx="0" dy="3" result="offsetblur"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#3D3B36" stroke-width="0.5" stroke-opacity="0.5"/>
+    </pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#4D4A43"/>
     </marker>
-    <marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/>
+    <marker id="arrowCoral" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#D97757"/>
     </marker>
   </defs>
 
-  <rect width="1400" height="900" fill="url(#bgGrad)"/>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#grid)"/>
 
-  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
-    <text x="700" y="55" font-size="32" font-weight="700" fill="#f1f5f9" text-anchor="middle">Perpetual Engine Architecture</text>
-    <text x="700" y="85" font-size="16" font-weight="400" fill="#94a3b8" text-anchor="middle">투자자 1인 · AI 에이전트 팀 · 파일 기반 SSOT · 실시간 대시보드</text>
+  <!-- Header -->
+  <g transform="translate(80, 72)">
+    <text font-family="ui-serif, Georgia, serif" font-size="36" font-weight="600" fill="#E8E6E3" letter-spacing="-0.5">System architecture</text>
+    <text y="30" font-family="ui-sans-serif, sans-serif" font-size="14" fill="#8A8780">Investor → Orchestrator → Agent team · Dashboard · Ephemeral experts</text>
   </g>
 
-  <g transform="translate(550, 130)" filter="url(#shadow)">
-    <rect width="300" height="90" rx="16" fill="url(#investorGrad)"/>
-    <text x="150" y="38" font-family="-apple-system, sans-serif" font-size="20" font-weight="700" fill="#fff" text-anchor="middle">👤 INVESTOR (You)</text>
-    <text x="150" y="62" font-family="-apple-system, sans-serif" font-size="13" font-weight="400" fill="#fff" text-anchor="middle" opacity="0.9">비전 · 목표 · 우선순위 설정</text>
-    <text x="150" y="78" font-family="-apple-system, sans-serif" font-size="13" font-weight="400" fill="#fff" text-anchor="middle" opacity="0.9">CLI · Dashboard 로 개입</text>
+  <!-- Investor (top) -->
+  <g transform="translate(700, 150)" font-family="ui-sans-serif, sans-serif">
+    <rect width="200" height="76" rx="12" fill="#2F2E2C" stroke="#D4A24A" stroke-width="1.5"/>
+    <text x="100" y="34" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600" fill="#D4A24A" text-anchor="middle">Investor</text>
+    <text x="100" y="56" font-size="12" fill="#B4B1AB" text-anchor="middle">You · sets vision, intervenes</text>
   </g>
 
-  <g stroke="#fbbf24" stroke-width="2" fill="none" marker-end="url(#arrow)">
-    <line x1="700" y1="225" x2="700" y2="270"/>
+  <!-- Arrow Investor -> Orchestrator -->
+  <path d="M 800 226 L 800 274" stroke="#4D4A43" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="812" y="258" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#8A8780">vision · messages</text>
+
+  <!-- Orchestrator -->
+  <g transform="translate(620, 280)" font-family="ui-sans-serif, sans-serif">
+    <rect width="360" height="100" rx="14" fill="#2F2E2C" stroke="#D97757" stroke-width="1.8"/>
+    <rect x="18" y="18" width="56" height="56" rx="14" fill="#D97757"/>
+    <text x="46" y="54" font-family="ui-serif, Georgia, serif" font-size="28" font-weight="600" fill="#FFFFFF" text-anchor="middle">∞</text>
+    <text x="94" y="44" font-family="ui-serif, Georgia, serif" font-size="20" font-weight="600" fill="#E8E6E3">Orchestrator</text>
+    <text x="94" y="66" font-size="12" fill="#B4B1AB">Routing · sprints · meetings · experts</text>
+    <text x="94" y="82" font-size="11" fill="#8A8780">tmux + Claude Code CLI sessions</text>
   </g>
 
-  <g transform="translate(480, 280)" filter="url(#shadow)">
-    <rect width="440" height="70" rx="14" fill="url(#coreGrad)"/>
-    <text x="220" y="32" font-family="-apple-system, sans-serif" font-size="18" font-weight="700" fill="#fff" text-anchor="middle">⚙️  Orchestrator (Workflow Engine)</text>
-    <text x="220" y="54" font-family="-apple-system, sans-serif" font-size="12" font-weight="400" fill="#fff" text-anchor="middle" opacity="0.9">sprint phases · message routing · consultant lifecycle · meetings</text>
-  </g>
-
-  <g stroke="#a78bfa" stroke-width="1.5" fill="none" marker-end="url(#arrowPurple)" stroke-opacity="0.7">
-    <path d="M 550 360 Q 280 400 180 450"/>
-    <path d="M 620 360 L 380 450"/>
-    <path d="M 700 360 L 600 450"/>
-    <path d="M 780 360 L 820 450"/>
-    <path d="M 850 360 L 1040 450"/>
-    <path d="M 870 360 Q 1100 400 1260 450"/>
-  </g>
-
-  <g font-family="-apple-system, sans-serif" filter="url(#shadow)">
-    <g transform="translate(80, 450)">
-      <rect width="200" height="100" rx="12" fill="#6366f1"/>
-      <text x="100" y="30" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">CEO</text>
-      <text x="100" y="54" font-size="11" fill="#e0e7ff" text-anchor="middle">전략 · 비전 · 의사결정</text>
-      <text x="100" y="72" font-size="10" fill="#c7d2fe" text-anchor="middle">/launch-strategy</text>
-      <text x="100" y="86" font-size="10" fill="#c7d2fe" text-anchor="middle">/marketing-psychology</text>
+  <!-- Six agent boxes -->
+  <g font-family="ui-sans-serif, sans-serif">
+    <g transform="translate(120, 460)">
+      <rect width="190" height="112" rx="12" fill="#2F2E2C" stroke="#3D3B36"/>
+      <rect x="16" y="16" width="40" height="40" rx="10" fill="#D97757"/>
+      <text x="36" y="43" font-family="ui-serif, Georgia, serif" font-size="17" font-weight="600" fill="#FFFFFF" text-anchor="middle">C</text>
+      <text x="66" y="32" font-size="14" font-weight="500" fill="#E8E6E3">CEO</text>
+      <text x="66" y="48" font-size="10" fill="#8A8780" letter-spacing="1.2">VISION · STRATEGY</text>
+      <text x="16" y="80" font-size="11" fill="#B4B1AB">launch-strategy</text>
+      <text x="16" y="96" font-size="11" fill="#B4B1AB">marketing-psychology</text>
     </g>
-    <g transform="translate(300, 450)">
-      <rect width="200" height="100" rx="12" fill="#0891b2"/>
-      <text x="100" y="30" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">CTO</text>
-      <text x="100" y="54" font-size="11" fill="#cffafe" text-anchor="middle">기술 아키텍처 · 개발</text>
-      <text x="100" y="72" font-size="10" fill="#a5f3fc" text-anchor="middle">/security-review</text>
-      <text x="100" y="86" font-size="10" fill="#a5f3fc" text-anchor="middle">/claude-api /simplify</text>
+    <g transform="translate(340, 460)">
+      <rect width="190" height="112" rx="12" fill="#2F2E2C" stroke="#3D3B36"/>
+      <rect x="16" y="16" width="40" height="40" rx="10" fill="#8FA96B"/>
+      <text x="36" y="43" font-family="ui-serif, Georgia, serif" font-size="17" font-weight="600" fill="#FFFFFF" text-anchor="middle">T</text>
+      <text x="66" y="32" font-size="14" font-weight="500" fill="#E8E6E3">CTO</text>
+      <text x="66" y="48" font-size="10" fill="#8A8780" letter-spacing="1.2">ARCHITECTURE</text>
+      <text x="16" y="80" font-size="11" fill="#B4B1AB">security-review</text>
+      <text x="16" y="96" font-size="11" fill="#B4B1AB">claude-api · simplify</text>
     </g>
-    <g transform="translate(520, 450)">
-      <rect width="200" height="100" rx="12" fill="#c026d3"/>
-      <text x="100" y="30" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">PO</text>
-      <text x="100" y="54" font-size="11" fill="#fae8ff" text-anchor="middle">프로덕트 기획 · 스프린트</text>
-      <text x="100" y="72" font-size="10" fill="#f5d0fe" text-anchor="middle">/copywriting</text>
-      <text x="100" y="86" font-size="10" fill="#f5d0fe" text-anchor="middle">/web-design-guidelines</text>
+    <g transform="translate(560, 460)">
+      <rect width="190" height="112" rx="12" fill="#2F2E2C" stroke="#3D3B36"/>
+      <rect x="16" y="16" width="40" height="40" rx="10" fill="#D4A24A"/>
+      <text x="36" y="43" font-family="ui-serif, Georgia, serif" font-size="17" font-weight="600" fill="#FFFFFF" text-anchor="middle">P</text>
+      <text x="66" y="32" font-size="14" font-weight="500" fill="#E8E6E3">PO</text>
+      <text x="66" y="48" font-size="10" fill="#8A8780" letter-spacing="1.2">PLANNING</text>
+      <text x="16" y="80" font-size="11" fill="#B4B1AB">copywriting</text>
+      <text x="16" y="96" font-size="11" fill="#B4B1AB">web-design-guidelines</text>
     </g>
-    <g transform="translate(740, 450)">
-      <rect width="200" height="100" rx="12" fill="#db2777"/>
-      <text x="100" y="30" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">Designer</text>
-      <text x="100" y="54" font-size="11" fill="#fce7f3" text-anchor="middle">UI · 디자인 시안</text>
-      <text x="100" y="72" font-size="10" fill="#fbcfe8" text-anchor="middle">/frontend-design</text>
-      <text x="100" y="86" font-size="10" fill="#fbcfe8" text-anchor="middle">/web-design-guidelines</text>
+    <g transform="translate(780, 460)">
+      <rect width="190" height="112" rx="12" fill="#2F2E2C" stroke="#3D3B36"/>
+      <rect x="16" y="16" width="40" height="40" rx="10" fill="#B4766F"/>
+      <text x="36" y="43" font-family="ui-serif, Georgia, serif" font-size="17" font-weight="600" fill="#FFFFFF" text-anchor="middle">D</text>
+      <text x="66" y="32" font-size="14" font-weight="500" fill="#E8E6E3">Designer</text>
+      <text x="66" y="48" font-size="10" fill="#8A8780" letter-spacing="1.2">HTML MOCKUPS</text>
+      <text x="16" y="80" font-size="11" fill="#B4B1AB">frontend-design</text>
+      <text x="16" y="96" font-size="11" fill="#B4B1AB">tokens.css · canvas</text>
     </g>
-    <g transform="translate(960, 450)">
-      <rect width="200" height="100" rx="12" fill="#059669"/>
-      <text x="100" y="30" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">QA</text>
-      <text x="100" y="54" font-size="11" fill="#d1fae5" text-anchor="middle">테스트 · 보안 감사</text>
-      <text x="100" y="72" font-size="10" fill="#a7f3d0" text-anchor="middle">/security-review</text>
-      <text x="100" y="86" font-size="10" fill="#a7f3d0" text-anchor="middle">/audit-website</text>
+    <g transform="translate(1000, 460)">
+      <rect width="190" height="112" rx="12" fill="#2F2E2C" stroke="#3D3B36"/>
+      <rect x="16" y="16" width="40" height="40" rx="10" fill="#6FA3A0"/>
+      <text x="36" y="43" font-family="ui-serif, Georgia, serif" font-size="17" font-weight="600" fill="#FFFFFF" text-anchor="middle">Q</text>
+      <text x="66" y="32" font-size="14" font-weight="500" fill="#E8E6E3">QA</text>
+      <text x="66" y="48" font-size="10" fill="#8A8780" letter-spacing="1.2">TESTING · AUDIT</text>
+      <text x="16" y="80" font-size="11" fill="#B4B1AB">security-review</text>
+      <text x="16" y="96" font-size="11" fill="#B4B1AB">audit-website</text>
     </g>
-    <g transform="translate(1180, 450)">
-      <rect width="200" height="100" rx="12" fill="#ea580c"/>
-      <text x="100" y="30" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">Marketer</text>
-      <text x="100" y="54" font-size="11" fill="#ffedd5" text-anchor="middle">광고 · SEO · 성장</text>
-      <text x="100" y="72" font-size="10" fill="#fed7aa" text-anchor="middle">/paid-ads /seo-audit</text>
-      <text x="100" y="86" font-size="10" fill="#fed7aa" text-anchor="middle">/google-ads-manager</text>
-    </g>
-  </g>
-
-  <g transform="translate(80, 580)" font-family="-apple-system, sans-serif">
-    <rect width="1240" height="90" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-    <text x="620" y="28" font-size="14" font-weight="700" fill="#e2e8f0" text-anchor="middle">🖥  tmux Sessions — 각 에이전트는 독립 Claude Code 세션</text>
-    <g transform="translate(20, 45)">
-      <g font-family="monospace" font-size="11" fill="#94a3b8">
-        <rect x="0" y="0" width="190" height="32" rx="6" fill="#0f172a" stroke="#475569"/>
-        <text x="10" y="20" fill="#67e8f9">▸ ceo-session</text>
-        <rect x="200" y="0" width="190" height="32" rx="6" fill="#0f172a" stroke="#475569"/>
-        <text x="210" y="20" fill="#67e8f9">▸ cto-session</text>
-        <rect x="400" y="0" width="190" height="32" rx="6" fill="#0f172a" stroke="#475569"/>
-        <text x="410" y="20" fill="#67e8f9">▸ po-session</text>
-        <rect x="600" y="0" width="190" height="32" rx="6" fill="#0f172a" stroke="#475569"/>
-        <text x="610" y="20" fill="#67e8f9">▸ designer-session</text>
-        <rect x="800" y="0" width="190" height="32" rx="6" fill="#0f172a" stroke="#475569"/>
-        <text x="810" y="20" fill="#67e8f9">▸ qa-session</text>
-        <rect x="1000" y="0" width="200" height="32" rx="6" fill="#0f172a" stroke="#475569"/>
-        <text x="1010" y="20" fill="#67e8f9">▸ marketer-session</text>
-      </g>
+    <g transform="translate(1220, 460)">
+      <rect width="190" height="112" rx="12" fill="#2F2E2C" stroke="#3D3B36"/>
+      <rect x="16" y="16" width="40" height="40" rx="10" fill="#C98B5B"/>
+      <text x="36" y="43" font-family="ui-serif, Georgia, serif" font-size="17" font-weight="600" fill="#FFFFFF" text-anchor="middle">M</text>
+      <text x="66" y="32" font-size="14" font-weight="500" fill="#E8E6E3">Marketer</text>
+      <text x="66" y="48" font-size="10" fill="#8A8780" letter-spacing="1.2">GROWTH</text>
+      <text x="16" y="80" font-size="11" fill="#B4B1AB">paid-ads · seo-audit</text>
+      <text x="16" y="96" font-size="11" fill="#B4B1AB">launch-strategy</text>
     </g>
   </g>
 
-  <g transform="translate(80, 700)" font-family="-apple-system, sans-serif">
-    <rect width="600" height="150" rx="12" fill="#1e293b" stroke="#334155"/>
-    <text x="20" y="30" font-size="15" font-weight="700" fill="#fbbf24">📁 File-based SSOT</text>
-    <g font-family="monospace" font-size="12" fill="#cbd5e1">
-      <text x="20" y="56"><tspan fill="#fbbf24">kanban.json</tspan> — 태스크 상태 단일 소스</text>
-      <text x="20" y="76"><tspan fill="#fbbf24">metrics.json</tspan> — KPI · 체크포인트 · 판정</text>
-      <text x="20" y="96"><tspan fill="#fbbf24">sprints.json</tspan> — 스프린트 데이터</text>
-      <text x="20" y="116"><tspan fill="#fbbf24">messages/</tspan> — 에이전트 간 메시지 큐</text>
-      <text x="20" y="136"><tspan fill="#fbbf24">docs/</tspan> — 회의록 · 기획 · 디자인 · 결정</text>
+  <!-- Orchestrator -> agents lines -->
+  <g stroke="#4D4A43" stroke-width="1.2" fill="none" stroke-dasharray="3 4">
+    <path d="M 800 380 L 800 430 L 215 430 L 215 460"/>
+    <path d="M 800 430 L 435 430 L 435 460"/>
+    <path d="M 800 430 L 655 430 L 655 460"/>
+    <path d="M 800 430 L 875 430 L 875 460"/>
+    <path d="M 800 430 L 1095 430 L 1095 460"/>
+    <path d="M 800 430 L 1315 430 L 1315 460"/>
+  </g>
+
+  <!-- Ephemeral Experts -->
+  <g transform="translate(120, 620)" font-family="ui-sans-serif, sans-serif">
+    <rect width="610" height="168" rx="12" fill="#2F2E2C" stroke="#3D3B36" stroke-dasharray="5 5"/>
+    <text x="24" y="36" font-family="ui-serif, Georgia, serif" font-size="17" font-weight="600" fill="#E8E6E3">Ephemeral experts</text>
+    <text x="24" y="56" font-size="12" fill="#8A8780">Describe any expertise · spawn · advise · auto-destruct (5 min)</text>
+
+    <g transform="translate(24, 76)">
+      <rect width="180" height="32" rx="8" fill="rgba(217,119,87,0.14)" stroke="rgba(217,119,87,0.3)"/>
+      <text x="14" y="20" font-size="11" fill="#E49477" font-family="ui-monospace, Menlo, monospace">GDPR lawyer</text>
+    </g>
+    <g transform="translate(216, 76)">
+      <rect width="200" height="32" rx="8" fill="rgba(143,169,107,0.12)" stroke="rgba(143,169,107,0.3)"/>
+      <text x="14" y="20" font-size="11" fill="#8FA96B" font-family="ui-monospace, Menlo, monospace">Series A fundraiser</text>
+    </g>
+    <g transform="translate(428, 76)">
+      <rect width="158" height="32" rx="8" fill="rgba(212,162,74,0.12)" stroke="rgba(212,162,74,0.3)"/>
+      <text x="14" y="20" font-size="11" fill="#D4A24A" font-family="ui-monospace, Menlo, monospace">PCI-DSS expert</text>
+    </g>
+    <g transform="translate(24, 120)">
+      <rect width="220" height="32" rx="8" fill="rgba(111,163,160,0.12)" stroke="rgba(111,163,160,0.3)"/>
+      <text x="14" y="20" font-size="11" fill="#6FA3A0" font-family="ui-monospace, Menlo, monospace">RN → Flutter architect</text>
+    </g>
+    <g transform="translate(256, 120)">
+      <rect width="200" height="32" rx="8" fill="rgba(201,139,91,0.14)" stroke="rgba(201,139,91,0.32)"/>
+      <text x="14" y="20" font-size="11" fill="#C98B5B" font-family="ui-monospace, Menlo, monospace">B2B SaaS strategist</text>
     </g>
   </g>
 
-  <g transform="translate(720, 700)" font-family="-apple-system, sans-serif">
-    <rect width="600" height="150" rx="12" fill="#1e293b" stroke="#334155"/>
-    <text x="20" y="30" font-size="15" font-weight="700" fill="#a78bfa">🎛  Dashboard (Express + WS)</text>
-    <g font-size="12" fill="#cbd5e1">
-      <text x="20" y="56">• 칸반보드 실시간 반영</text>
-      <text x="20" y="76">• 에이전트 상태 · 활동 피드</text>
-      <text x="20" y="96">• 회의록 · 자문 전문가 로그</text>
-      <text x="20" y="116">• 메트릭스 대시보드 (달성률 시각화)</text>
-      <text x="20" y="136">• localhost:3000 · WebSocket 브로드캐스트</text>
+  <!-- File-based SSOT -->
+  <g transform="translate(760, 620)" font-family="ui-sans-serif, sans-serif">
+    <rect width="320" height="168" rx="12" fill="#2F2E2C" stroke="#3D3B36"/>
+    <text x="24" y="36" font-family="ui-serif, Georgia, serif" font-size="17" font-weight="600" fill="#E8E6E3">File-based SSOT</text>
+    <text x="24" y="56" font-size="12" fill="#8A8780">Markdown + JSON · Git-tracked</text>
+    <g transform="translate(24, 72)" font-family="ui-monospace, Menlo, monospace" font-size="12" fill="#B4B1AB">
+      <text y="16">kanban.json</text>
+      <text y="36">sprints.json</text>
+      <text y="56">metrics.json</text>
+      <text y="76">docs/meetings/, decisions/, design/</text>
     </g>
+  </g>
+
+  <!-- Dashboard -->
+  <g transform="translate(1110, 620)" font-family="ui-sans-serif, sans-serif">
+    <rect width="370" height="168" rx="12" fill="#2F2E2C" stroke="#3D3B36"/>
+    <rect x="20" y="20" width="40" height="40" rx="10" fill="#D97757"/>
+    <text x="40" y="46" font-family="ui-serif, Georgia, serif" font-size="17" font-weight="600" fill="#FFFFFF" text-anchor="middle">∞</text>
+    <text x="72" y="36" font-family="ui-serif, Georgia, serif" font-size="17" font-weight="600" fill="#E8E6E3">Dashboard</text>
+    <text x="72" y="54" font-size="12" fill="#8A8780">localhost:3000 · WebSocket live</text>
+    <g transform="translate(20, 76)" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#B4B1AB">
+      <text y="16">Kanban · Organization · Docs</text>
+      <text y="36">Design canvas · Metrics</text>
+      <text y="56">Messages · Settings</text>
+    </g>
+  </g>
+
+  <!-- SSOT link lines -->
+  <g stroke="#D97757" stroke-width="1.3" fill="none" stroke-opacity="0.6">
+    <path d="M 215 572 L 215 600 L 800 600 L 800 620" marker-end="url(#arrowCoral)"/>
+    <path d="M 1315 572 L 1315 600 L 920 600 L 920 620" marker-end="url(#arrowCoral)"/>
+  </g>
+  <path d="M 1080 700 L 1110 700" stroke="#4D4A43" stroke-width="1.4" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Legend -->
+  <g transform="translate(120, 824)" font-family="ui-sans-serif, sans-serif" font-size="12" fill="#8A8780">
+    <circle cx="4" cy="-2" r="4" fill="#D97757"/>
+    <text x="16" y="2">Coral · brand + orchestration</text>
+    <g transform="translate(260, 0)"><circle cx="4" cy="-2" r="4" fill="#8FA96B"/><text x="16" y="2">Moss · working + success</text></g>
+    <g transform="translate(500, 0)"><circle cx="4" cy="-2" r="4" fill="#D4A24A"/><text x="16" y="2">Amber · planning + pause</text></g>
+    <g transform="translate(740, 0)"><circle cx="4" cy="-2" r="4" fill="#C4644E"/><text x="16" y="2">Rust · critical</text></g>
   </g>
 </svg>

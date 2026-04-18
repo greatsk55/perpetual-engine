@@ -38,6 +38,10 @@ export class MockTmuxAdapter extends TmuxAdapter {
 
   async createSession(name: string, command: string): Promise<void> {
     const sessionName = this.prefixed(name);
+    // 실제 tmux 동작을 모사: 이미 같은 이름의 세션이 있으면 에러
+    if (this.sessions.has(sessionName)) {
+      throw new Error(`duplicate session: ${sessionName}`);
+    }
     const record: MockSessionRecord = {
       sessionName,
       rawName: name,

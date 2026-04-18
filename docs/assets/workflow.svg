@@ -1,194 +1,198 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 700" width="1400" height="700">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 760" width="1600" height="760">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#0f172a"/>
-      <stop offset="100%" stop-color="#020617"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#262624"/>
+      <stop offset="100%" stop-color="#1F1E1C"/>
     </linearGradient>
-    <linearGradient id="stepGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#6366f1"/>
-      <stop offset="100%" stop-color="#8b5cf6"/>
-    </linearGradient>
-    <linearGradient id="stepGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#8b5cf6"/>
-      <stop offset="100%" stop-color="#d946ef"/>
-    </linearGradient>
-    <linearGradient id="stepGrad3" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#d946ef"/>
-      <stop offset="100%" stop-color="#ec4899"/>
-    </linearGradient>
-    <linearGradient id="stepGrad4" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#ec4899"/>
-      <stop offset="100%" stop-color="#f59e0b"/>
-    </linearGradient>
-    <linearGradient id="stepGrad5" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#f59e0b"/>
-      <stop offset="100%" stop-color="#10b981"/>
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
-      <feOffset dx="0" dy="3" result="offsetblur"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#3D3B36" stroke-width="0.5" stroke-opacity="0.5"/>
+    </pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#4D4A43"/>
+    </marker>
+    <marker id="loopArrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#D97757"/>
+    </marker>
   </defs>
 
-  <rect width="1400" height="700" fill="url(#bgGrad)"/>
+  <rect width="1600" height="760" fill="url(#bg)"/>
+  <rect width="1600" height="760" fill="url(#grid)"/>
 
-  <text x="700" y="55" font-family="-apple-system, sans-serif" font-size="30" font-weight="700" fill="#f1f5f9" text-anchor="middle">Sprint Workflow</text>
-  <text x="700" y="85" font-family="-apple-system, sans-serif" font-size="15" fill="#94a3b8" text-anchor="middle">각 페이즈는 독립 Claude Code 세션 · 에이전트 간 파일 기반 핸드오프</text>
+  <!-- Header -->
+  <g transform="translate(80, 64)">
+    <text font-family="ui-serif, Georgia, serif" font-size="34" font-weight="600" fill="#E8E6E3" letter-spacing="-0.5">Sprint workflow</text>
+    <text y="30" font-family="ui-sans-serif, sans-serif" font-size="14" fill="#8A8780">Each phase runs in its own Claude Code session · hand-off via Markdown docs</text>
+  </g>
 
-  <g font-family="-apple-system, sans-serif" filter="url(#shadow)">
-    <g transform="translate(60, 140)">
-      <rect width="240" height="280" rx="16" fill="url(#stepGrad1)"/>
-      <text x="120" y="40" font-size="44" text-anchor="middle">📋</text>
-      <text x="120" y="80" font-size="18" font-weight="700" fill="#fff" text-anchor="middle">1. Planning</text>
-      <text x="120" y="105" font-size="12" fill="#e0e7ff" text-anchor="middle">CEO · PO</text>
-      <line x1="30" y1="120" x2="210" y2="120" stroke="#fff" stroke-opacity="0.3"/>
-      <g font-size="12" fill="#e0e7ff">
-        <text x="120" y="145" text-anchor="middle">비전 / 가설 수립</text>
-        <text x="120" y="170" text-anchor="middle">KPI · 측정 기간 정의</text>
-        <text x="120" y="195" text-anchor="middle">스프린트 백로그 생성</text>
-        <text x="120" y="220" text-anchor="middle">우선순위 결정</text>
+  <!-- Five stages -->
+  <g font-family="ui-sans-serif, sans-serif">
+    <!-- Planning -->
+    <g transform="translate(80, 190)">
+      <rect width="260" height="170" rx="14" fill="#2F2E2C" stroke="#D4A24A" stroke-width="1.4"/>
+      <g transform="translate(20, 20)">
+        <rect width="36" height="36" rx="8" fill="rgba(212,162,74,0.16)" stroke="#D4A24A" stroke-width="1"/>
+        <text x="18" y="24" text-anchor="middle" font-family="ui-serif, Georgia, serif" font-size="14" font-weight="600" fill="#D4A24A">1</text>
       </g>
-      <g transform="translate(120, 250)">
-        <rect x="-70" y="0" width="140" height="22" rx="11" fill="#0f172a" fill-opacity="0.3"/>
-        <text y="15" font-size="10" font-family="monospace" fill="#fff" text-anchor="middle">docs/planning/</text>
+      <text x="70" y="36" font-size="11" fill="#8A8780" letter-spacing="1.5">PHASE 01</text>
+      <text x="70" y="56" font-family="ui-serif, Georgia, serif" font-size="20" font-weight="600" fill="#E8E6E3">Planning</text>
+      <text x="20" y="96" font-size="12" fill="#B4B1AB">PO, CEO</text>
+      <g transform="translate(20, 108)" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#8A8780">
+        <text y="14">· hypothesis + KPI</text>
+        <text y="30">· baseline / target</text>
+        <text y="46">· checkpoints</text>
       </g>
     </g>
 
-    <g transform="translate(340, 140)">
-      <rect width="240" height="280" rx="16" fill="url(#stepGrad2)"/>
-      <text x="120" y="40" font-size="44" text-anchor="middle">🎨</text>
-      <text x="120" y="80" font-size="18" font-weight="700" fill="#fff" text-anchor="middle">2. Design</text>
-      <text x="120" y="105" font-size="12" fill="#fae8ff" text-anchor="middle">Designer · PO</text>
-      <line x1="30" y1="120" x2="210" y2="120" stroke="#fff" stroke-opacity="0.3"/>
-      <g font-size="12" fill="#fae8ff">
-        <text x="120" y="145" text-anchor="middle">와이어프레임 / UI 시안</text>
-        <text x="120" y="170" text-anchor="middle">UX 플로우 설계</text>
-        <text x="120" y="195" text-anchor="middle">디자인 시스템 점검</text>
-        <text x="120" y="220" text-anchor="middle">카피 · 메시지 톤</text>
+    <!-- Design -->
+    <g transform="translate(360, 190)">
+      <rect width="260" height="170" rx="14" fill="#2F2E2C" stroke="#B4766F" stroke-width="1.4"/>
+      <g transform="translate(20, 20)">
+        <rect width="36" height="36" rx="8" fill="rgba(180,118,111,0.16)" stroke="#B4766F" stroke-width="1"/>
+        <text x="18" y="24" text-anchor="middle" font-family="ui-serif, Georgia, serif" font-size="14" font-weight="600" fill="#B4766F">2</text>
       </g>
-      <g transform="translate(120, 250)">
-        <rect x="-70" y="0" width="140" height="22" rx="11" fill="#0f172a" fill-opacity="0.3"/>
-        <text y="15" font-size="10" font-family="monospace" fill="#fff" text-anchor="middle">docs/design/</text>
-      </g>
-    </g>
-
-    <g transform="translate(620, 140)">
-      <rect width="240" height="280" rx="16" fill="url(#stepGrad3)"/>
-      <text x="120" y="40" font-size="44" text-anchor="middle">💻</text>
-      <text x="120" y="80" font-size="18" font-weight="700" fill="#fff" text-anchor="middle">3. Development</text>
-      <text x="120" y="105" font-size="12" fill="#fce7f3" text-anchor="middle">CTO</text>
-      <line x1="30" y1="120" x2="210" y2="120" stroke="#fff" stroke-opacity="0.3"/>
-      <g font-size="12" fill="#fce7f3">
-        <text x="120" y="145" text-anchor="middle">아키텍처 / 구현</text>
-        <text x="120" y="170" text-anchor="middle">코드 작성 · 커밋</text>
-        <text x="120" y="195" text-anchor="middle">의존성 · 배포 파이프라인</text>
-        <text x="120" y="220" text-anchor="middle">성능 · 보안 점검</text>
-      </g>
-      <g transform="translate(120, 250)">
-        <rect x="-70" y="0" width="140" height="22" rx="11" fill="#0f172a" fill-opacity="0.3"/>
-        <text y="15" font-size="10" font-family="monospace" fill="#fff" text-anchor="middle">workspace/</text>
+      <text x="70" y="36" font-size="11" fill="#8A8780" letter-spacing="1.5">PHASE 02</text>
+      <text x="70" y="56" font-family="ui-serif, Georgia, serif" font-size="20" font-weight="600" fill="#E8E6E3">Design</text>
+      <text x="20" y="96" font-size="12" fill="#B4B1AB">Designer</text>
+      <g transform="translate(20, 108)" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#8A8780">
+        <text y="14">· tokens.css / components</text>
+        <text y="30">· HTML mockups</text>
+        <text y="46">· Design canvas preview</text>
       </g>
     </g>
 
-    <g transform="translate(900, 140)">
-      <rect width="240" height="280" rx="16" fill="url(#stepGrad4)"/>
-      <text x="120" y="40" font-size="44" text-anchor="middle">🧪</text>
-      <text x="120" y="80" font-size="18" font-weight="700" fill="#fff" text-anchor="middle">4. Testing</text>
-      <text x="120" y="105" font-size="12" fill="#ffedd5" text-anchor="middle">QA · CTO</text>
-      <line x1="30" y1="120" x2="210" y2="120" stroke="#fff" stroke-opacity="0.3"/>
-      <g font-size="12" fill="#ffedd5">
-        <text x="120" y="145" text-anchor="middle">기능 / E2E 테스트</text>
-        <text x="120" y="170" text-anchor="middle">보안 · 접근성 감사</text>
-        <text x="120" y="195" text-anchor="middle">버그 리포트 · 회의 소집</text>
-        <text x="120" y="220" text-anchor="middle">Go / No-Go 판정</text>
+    <!-- Development -->
+    <g transform="translate(640, 190)">
+      <rect width="260" height="170" rx="14" fill="#2F2E2C" stroke="#8FA96B" stroke-width="1.4"/>
+      <g transform="translate(20, 20)">
+        <rect width="36" height="36" rx="8" fill="rgba(143,169,107,0.16)" stroke="#8FA96B" stroke-width="1"/>
+        <text x="18" y="24" text-anchor="middle" font-family="ui-serif, Georgia, serif" font-size="14" font-weight="600" fill="#8FA96B">3</text>
       </g>
-      <g transform="translate(120, 250)">
-        <rect x="-70" y="0" width="140" height="22" rx="11" fill="#0f172a" fill-opacity="0.3"/>
-        <text y="15" font-size="10" font-family="monospace" fill="#fff" text-anchor="middle">docs/decisions/</text>
+      <text x="70" y="36" font-size="11" fill="#8A8780" letter-spacing="1.5">PHASE 03</text>
+      <text x="70" y="56" font-family="ui-serif, Georgia, serif" font-size="20" font-weight="600" fill="#E8E6E3">Development</text>
+      <text x="20" y="96" font-size="12" fill="#B4B1AB">CTO</text>
+      <g transform="translate(20, 108)" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#8A8780">
+        <text y="14">· reference HTML mockups</text>
+        <text y="30">· implement + commit</text>
+        <text y="46">· /simplify review</text>
       </g>
     </g>
 
-    <g transform="translate(1180, 140)">
-      <rect width="180" height="280" rx="16" fill="url(#stepGrad5)"/>
-      <text x="90" y="40" font-size="44" text-anchor="middle">🚀</text>
-      <text x="90" y="80" font-size="18" font-weight="700" fill="#fff" text-anchor="middle">5. Launch</text>
-      <text x="90" y="105" font-size="12" fill="#d1fae5" text-anchor="middle">Marketer · CEO</text>
-      <line x1="20" y1="120" x2="160" y2="120" stroke="#fff" stroke-opacity="0.3"/>
-      <g font-size="11" fill="#d1fae5">
-        <text x="90" y="145" text-anchor="middle">배포</text>
-        <text x="90" y="170" text-anchor="middle">SEO · 광고 · PR</text>
-        <text x="90" y="195" text-anchor="middle">사용자 피드백 수집</text>
-        <text x="90" y="220" text-anchor="middle">KPI 모니터링</text>
+    <!-- Testing -->
+    <g transform="translate(920, 190)">
+      <rect width="260" height="170" rx="14" fill="#2F2E2C" stroke="#6FA3A0" stroke-width="1.4"/>
+      <g transform="translate(20, 20)">
+        <rect width="36" height="36" rx="8" fill="rgba(111,163,160,0.16)" stroke="#6FA3A0" stroke-width="1"/>
+        <text x="18" y="24" text-anchor="middle" font-family="ui-serif, Georgia, serif" font-size="14" font-weight="600" fill="#6FA3A0">4</text>
       </g>
-      <g transform="translate(90, 250)">
-        <rect x="-70" y="0" width="140" height="22" rx="11" fill="#0f172a" fill-opacity="0.3"/>
-        <text y="15" font-size="10" font-family="monospace" fill="#fff" text-anchor="middle">docs/marketing/</text>
+      <text x="70" y="36" font-size="11" fill="#8A8780" letter-spacing="1.5">PHASE 04</text>
+      <text x="70" y="56" font-family="ui-serif, Georgia, serif" font-size="20" font-weight="600" fill="#E8E6E3">Testing</text>
+      <text x="20" y="96" font-size="12" fill="#B4B1AB">QA</text>
+      <g transform="translate(20, 108)" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#8A8780">
+        <text y="14">· security-review</text>
+        <text y="30">· audit-website</text>
+        <text y="46">· regression + a11y</text>
+      </g>
+    </g>
+
+    <!-- Launch -->
+    <g transform="translate(1200, 190)">
+      <rect width="260" height="170" rx="14" fill="#2F2E2C" stroke="#D97757" stroke-width="1.4"/>
+      <g transform="translate(20, 20)">
+        <rect width="36" height="36" rx="8" fill="rgba(217,119,87,0.16)" stroke="#D97757" stroke-width="1"/>
+        <text x="18" y="24" text-anchor="middle" font-family="ui-serif, Georgia, serif" font-size="14" font-weight="600" fill="#D97757">5</text>
+      </g>
+      <text x="70" y="36" font-size="11" fill="#8A8780" letter-spacing="1.5">PHASE 05</text>
+      <text x="70" y="56" font-family="ui-serif, Georgia, serif" font-size="20" font-weight="600" fill="#E8E6E3">Launch</text>
+      <text x="20" y="96" font-size="12" fill="#B4B1AB">CEO, Marketer</text>
+      <g transform="translate(20, 108)" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#8A8780">
+        <text y="14">· deploy</text>
+        <text y="30">· launch-strategy</text>
+        <text y="46">· paid-ads / seo-audit</text>
       </g>
     </g>
   </g>
 
-  <g stroke="#475569" stroke-width="2" fill="none">
-    <path d="M 300 280 L 340 280" marker-end="url(#arrowGray)"/>
-    <path d="M 580 280 L 620 280"/>
-    <path d="M 860 280 L 900 280"/>
-    <path d="M 1140 280 L 1180 280"/>
-  </g>
-  <g fill="#94a3b8">
-    <polygon points="330,275 340,280 330,285"/>
-    <polygon points="610,275 620,280 610,285"/>
-    <polygon points="890,275 900,280 890,285"/>
-    <polygon points="1170,275 1180,280 1170,285"/>
+  <!-- Arrows between phases -->
+  <g stroke="#4D4A43" stroke-width="1.6" fill="none">
+    <path d="M 340 275 L 360 275" marker-end="url(#arrow)"/>
+    <path d="M 620 275 L 640 275" marker-end="url(#arrow)"/>
+    <path d="M 900 275 L 920 275" marker-end="url(#arrow)"/>
+    <path d="M 1180 275 L 1200 275" marker-end="url(#arrow)"/>
   </g>
 
-  <g transform="translate(60, 460)" font-family="-apple-system, sans-serif">
-    <rect width="1300" height="210" rx="16" fill="#1e293b" stroke="#334155"/>
-    <text x="30" y="38" font-size="18" font-weight="700" fill="#fbbf24">🔄 Continuous Loop — 모든 페이즈에서 가능</text>
+  <!-- Feedback loop (orange) -->
+  <g stroke="#D97757" stroke-width="1.6" fill="none" stroke-dasharray="6 5" stroke-opacity="0.7">
+    <path d="M 1330 360 C 1330 440, 860 440, 210 440 L 210 360" marker-end="url(#loopArrow)"/>
+  </g>
+  <g transform="translate(720, 432)" font-family="ui-sans-serif, sans-serif">
+    <rect width="170" height="24" x="-85" y="-13" rx="12" fill="#262624" stroke="#D97757" stroke-opacity="0.6"/>
+    <text text-anchor="middle" y="4" font-size="12" fill="#E49477">next sprint · iterate</text>
+  </g>
 
-    <g transform="translate(30, 60)">
-      <g transform="translate(0, 0)">
-        <rect width="300" height="130" rx="10" fill="#0f172a" stroke="#475569"/>
-        <text x="20" y="30" font-size="14" font-weight="700" fill="#a78bfa">📊 Metrics Evaluation</text>
-        <g font-size="12" fill="#cbd5e1">
-          <text x="20" y="55">체크포인트마다 KPI 달성도 측정</text>
-          <text x="20" y="75"><tspan fill="#10b981">&gt;=120%</tspan> 확대 · <tspan fill="#22d3ee">&gt;=100%</tspan> 유지</text>
-          <text x="20" y="95"><tspan fill="#fbbf24">&gt;=60%</tspan> 반복개선 · <tspan fill="#f97316">&gt;=30%</tspan> 방향전환</text>
-          <text x="20" y="115"><tspan fill="#ef4444">&lt;30%</tspan> 폐기 — 자동 판정</text>
+  <!-- Parallel rails -->
+  <g transform="translate(80, 510)">
+    <text font-family="ui-serif, Georgia, serif" font-size="15" font-weight="600" fill="#E8E6E3">Running in parallel at every phase</text>
+    <text y="22" font-family="ui-sans-serif, sans-serif" font-size="12" fill="#8A8780">Metrics · meetings · consultants · user intervention keep the loop alive.</text>
+
+    <g transform="translate(0, 46)" font-family="ui-sans-serif, sans-serif">
+      <!-- Metrics -->
+      <g>
+        <rect width="346" height="130" rx="12" fill="#2F2E2C" stroke="#3D3B36"/>
+        <g transform="translate(16, 16)">
+          <rect width="32" height="32" rx="8" fill="rgba(212,162,74,0.16)"/>
+          <text x="16" y="22" text-anchor="middle" font-family="ui-serif, Georgia, serif" font-size="15" font-weight="600" fill="#D4A24A">M</text>
+        </g>
+        <text x="60" y="36" font-family="ui-serif, Georgia, serif" font-size="16" font-weight="600" fill="#E8E6E3">Metrics checkpoints</text>
+        <text x="60" y="54" font-size="11" fill="#8A8780">Every plan has KPI + period + verdict</text>
+        <g transform="translate(16, 78)" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#B4B1AB">
+          <text y="14">baseline → target → checkpoint</text>
+          <text y="30">verdict: scale / maintain / iterate / pivot / kill</text>
         </g>
       </g>
 
-      <g transform="translate(330, 0)">
-        <rect width="300" height="130" rx="10" fill="#0f172a" stroke="#475569"/>
-        <text x="20" y="30" font-size="14" font-weight="700" fill="#f0abfc">🗣  Multi-Agent Meeting</text>
-        <g font-size="12" fill="#cbd5e1">
-          <text x="20" y="55">이슈 발생 시 유관 에이전트 소집</text>
-          <text x="20" y="75">issue_discussion · consultation</text>
-          <text x="20" y="95">관련 태스크 컨텍스트 자동 연결</text>
-          <text x="20" y="115">docs/meetings/에 회의록 생성</text>
+      <!-- Meetings -->
+      <g transform="translate(366, 0)">
+        <rect width="346" height="130" rx="12" fill="#2F2E2C" stroke="#3D3B36"/>
+        <g transform="translate(16, 16)">
+          <rect width="32" height="32" rx="8" fill="rgba(143,169,107,0.16)"/>
+          <text x="16" y="22" text-anchor="middle" font-family="ui-serif, Georgia, serif" font-size="15" font-weight="600" fill="#8FA96B">M</text>
+        </g>
+        <text x="60" y="36" font-family="ui-serif, Georgia, serif" font-size="16" font-weight="600" fill="#E8E6E3">Multi-agent meetings</text>
+        <text x="60" y="54" font-size="11" fill="#8A8780">Issue → invite participants → minutes</text>
+        <g transform="translate(16, 78)" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#B4B1AB">
+          <text y="14">meeting_invite · participantRoles</text>
+          <text y="30">relatedTaskIds · docs/meetings/</text>
         </g>
       </g>
 
-      <g transform="translate(660, 0)">
-        <rect width="300" height="130" rx="10" fill="#0f172a" stroke="#475569"/>
-        <text x="20" y="30" font-size="14" font-weight="700" fill="#67e8f9">🎓 Ephemeral Consultant</text>
-        <g font-size="12" fill="#cbd5e1">
-          <text x="20" y="55">"GDPR 변호사" 같은 전문가 즉석 생성</text>
-          <text x="20" y="75">expertise 자유 서술 → 맞춤 에이전트</text>
-          <text x="20" y="95">자문 후 자동 소멸 (5분 타임아웃)</text>
-          <text x="20" y="115">회의에도 초대 가능</text>
+      <!-- Consultants -->
+      <g transform="translate(732, 0)">
+        <rect width="346" height="130" rx="12" fill="#2F2E2C" stroke="#3D3B36"/>
+        <g transform="translate(16, 16)">
+          <rect width="32" height="32" rx="8" fill="rgba(217,119,87,0.16)"/>
+          <text x="16" y="22" text-anchor="middle" font-family="ui-serif, Georgia, serif" font-size="15" font-weight="600" fill="#D97757">E</text>
+        </g>
+        <text x="60" y="36" font-family="ui-serif, Georgia, serif" font-size="16" font-weight="600" fill="#E8E6E3">Expert consultants</text>
+        <text x="60" y="54" font-size="11" fill="#8A8780">Spawn any expertise on demand</text>
+        <g transform="translate(16, 78)" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#B4B1AB">
+          <text y="14">consultation_request · expertise</text>
+          <text y="30">advise → auto-destruct (5 min)</text>
         </g>
       </g>
 
-      <g transform="translate(990, 0)">
-        <rect width="280" height="130" rx="10" fill="#0f172a" stroke="#475569"/>
-        <text x="20" y="30" font-size="14" font-weight="700" fill="#fb923c">👤 User Intervention</text>
-        <g font-size="12" fill="#cbd5e1">
-          <text x="20" y="55">perpetual-engine message "..."</text>
-          <text x="20" y="75">task run / suspend / resume</text>
-          <text x="20" y="95">pause / resume 전체 에이전트</text>
-          <text x="20" y="115">언제든 방향 전환 지시 가능</text>
+      <!-- Intervention -->
+      <g transform="translate(1098, 0)">
+        <rect width="346" height="130" rx="12" fill="#2F2E2C" stroke="#3D3B36"/>
+        <g transform="translate(16, 16)">
+          <rect width="32" height="32" rx="8" fill="rgba(201,139,91,0.16)"/>
+          <text x="16" y="22" text-anchor="middle" font-family="ui-serif, Georgia, serif" font-size="15" font-weight="600" fill="#C98B5B">U</text>
+        </g>
+        <text x="60" y="36" font-family="ui-serif, Georgia, serif" font-size="16" font-weight="600" fill="#E8E6E3">User intervention</text>
+        <text x="60" y="54" font-size="11" fill="#8A8780">Messages · pause · redirect anytime</text>
+        <g transform="translate(16, 78)" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#B4B1AB">
+          <text y="14">perpetual-engine message "..."</text>
+          <text y="30">pause / resume / stop / task run</text>
         </g>
       </g>
     </g>

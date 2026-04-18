@@ -1,7 +1,7 @@
 import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 
-export type Device = 'mobile' | 'tablet' | 'desktop' | string;
+export type Device = 'mobile' | 'tablet' | 'desktop' | 'slide' | string;
 
 /**
  * 피처 폴더의 meta.json 스키마.
@@ -129,9 +129,15 @@ function inferDevice(name: string): Device | null {
   if (/(^|[-_])(mobile|phone|ios|android)([-_]|$)/.test(n)) return 'mobile';
   if (/(^|[-_])(tablet|ipad)([-_]|$)/.test(n)) return 'tablet';
   if (/(^|[-_])(desktop|web|pc)([-_]|$)/.test(n)) return 'desktop';
+  // 슬라이드/피치덱/프레젠테이션 시안
+  if (/(^|[-_])(slide|deck|pitch|presentation|keynote)([-_]|$)/.test(n)) return 'slide';
   return null;
 }
 
 function deviceOrder(device: Device): number {
-  return device === 'mobile' ? 0 : device === 'tablet' ? 1 : 2;
+  if (device === 'mobile') return 0;
+  if (device === 'tablet') return 1;
+  if (device === 'desktop') return 2;
+  if (device === 'slide') return 3;
+  return 4;
 }

@@ -37,7 +37,9 @@ src/
 ```bash
 perpetual-engine init <name>           # 프로젝트 생성
 perpetual-engine setup                 # 대화형 설정 (작업 언어/회사/프로덕트 등)
-perpetual-engine start                 # 에이전트 + 대시보드 시작
+perpetual-engine start                 # 에이전트 + 대시보드 시작 (기본: 빈 프로젝트에만 CEO 자동 기동)
+perpetual-engine start --no-ceo        # CEO 자동 기동 건너뛰기 (워처만 가동)
+perpetual-engine start --force-ceo     # 기존 스프린트가 있어도 CEO 재계획 강제
 perpetual-engine stop                  # 모든 에이전트 종료
 perpetual-engine team                  # 팀 목록
 perpetual-engine status                # 상태 요약
@@ -56,6 +58,7 @@ perpetual-engine task list [-s status] # 태스크 목록 (상태 필터 가능)
 - **세션 독립성**: 각 워크플로우 페이즈는 새 Claude Code 세션에서 실행
 - **메트릭스 기반 의사결정**: 모든 기획에 측정 지표/기간을 설계하고, 달성도로 다음 행동(확대/유지/반복개선/방향전환/폐기) 결정
 - **작업 언어 일원화**: setup 시 선택한 언어(`config.localization`)를 PromptBuilder가 모든 에이전트 시스템 프롬프트 최상단에 주입 — 대화·문서·칸반·커밋·자문 요청 모두 동일 언어. 코드 식별자/외부 API/URL은 원문 유지.
+- **한 역할당 동시 세션 1개**: tmux 세션명이 역할 단위(`ip-<role>`)라 같은 역할로 세션을 동시에 2개 이상 띄울 수 없다. 새 태스크 디스패치 경로를 추가할 때는 `Orchestrator.processingRoles` 락을 반드시 거치고, 세션명을 `role` 이 아닌 다른 키로 쓸 거면 SessionManager 의 activeSessions 키 전체를 함께 바꿔야 한다.
 
 ## 에이전트 스킬 시스템
 각 에이전트는 역할에 맞는 전용 스킬(Claude Code slash command)을 보유합니다:
@@ -94,14 +97,16 @@ perpetual-engine task list [-s status] # 태스크 목록 (상태 필터 가능)
 - 세션 관리: `src/core/session/session-manager.ts`의 `startMeetingSession()`
 - 오케스트레이터: `src/core/workflow/orchestrator.ts`의 `startMultiAgentMeeting()`
 
-## 디자인 스택 (HTML + CSS)
-Designer 의 산출물은 HTML 목업이며 외부 디자인 툴(Pencil/Figma) 은 사용하지 않습니다. CTO 도 동일한 HTML 을 구현 레퍼런스로 사용합니다.
+## 디자인 스택 (HTML + CSS [+ JS for slides])
+Designer 의 산출물은 HTML 목업이며 외부 디자인 툴(Pencil/Figma/Keynote/PPT) 은 사용하지 않습니다. CTO 도 동일한 HTML 을 구현 레퍼런스로 사용합니다.
+프로덕트 UI 는 HTML + CSS 로만, **피치덱/세일즈덱/프레젠테이션 슬라이드** 는 동일한 디자인 시스템 위에서 HTML + CSS + vanilla JS 로 제작합니다 (빌드 툴 금지, CDN `<script>` 허용). 슬라이드 JS 는 시연용이며 프로덕트 코드에 재사용되지 않습니다.
 
 구조:
-- `docs/design/system/tokens.css` — CSS 변수 토큰 SSOT (색/간격/반경/타이포/그림자)
-- `docs/design/system/components.css` — `.device-mobile`, `.device-desktop`, `.ip-*` 재사용 클래스
+- `docs/design/system/tokens.css` — CSS 변수 토큰 SSOT (색/간격/반경/타이포/그림자 + 슬라이드 래퍼 치수)
+- `docs/design/system/components.css` — `.device-mobile`, `.device-desktop`, `.device-slide-16x9` 등 래퍼 + `.ip-*` / `.slide-*` 재사용 클래스
 - `docs/design/system/design-system.md` — 명세 + CHANGELOG
 - `docs/design/mockups/<feature>/<screen>.html` + `meta.json` — 피처 목업 (리터럴 값 금지, `var(--…)` 와 `.ip-*` 만 사용)
+- `docs/design/mockups/<deck>/slide-*.html` + `meta.json` (device:"slide") — 피치덱·프레젠테이션 슬라이드 템플릿
 
 Design Canvas (`http://localhost:3000/design`):
 - `GET /api/design/mockups` → `meta.json` 스캔 결과 ([mockup-scanner.ts](src/core/design/mockup-scanner.ts))
@@ -138,12 +143,18 @@ CTO/Dev 컨텍스트 (`src/core/context/context-manager.ts`) 는 development 페
 - [디자이너 디자인 시스템 생명주기](docs/troubleshooting/designer-design-system-lifecycle.md) - Designer 3단계 생명주기(부트스트랩/기반 디자인/최신화) 개념 — v0(Pencil) 기록용. 산출물 형식은 아래 HTML 스택 문서가 우선
 - [Pencil → HTML+CSS 디자인 스택 전환](docs/troubleshooting/design-html-stack-migration.md) - Designer 산출물이 HTML 목업(토큰 기반) + Design Canvas(/design)로 통일. CTO 도 HTML 시안으로 개발. tokens.css/components.css/meta.json 규약 + mockup-scanner + 대시보드 라우트 구성
 - [대시보드 UI 리뉴얼](docs/troubleshooting/dashboard-ui-redesign.md) - Claude 디자인 토큰(coral/moss/amber + serif display) 도입, 모바일 우선 반응형(bottom sheet 모달, 가로 스크롤 네비/칸반/카테고리), API·상태 구조는 불변 유지
+- [대시보드 Design 탭 누락](docs/troubleshooting/dashboard-design-tab-missing.md) - `/design` 라우트·canvas.html 은 구현됐지만 SPA 상단 네비 탭 배열에 항목이 없어 진입 불가. `renderNav` 탭 + `renderDesign()` iframe 임베드로 해결. 백엔드 라우트 추가 시 SPA 네비 갱신 확인 규칙화
 - [세션 시작 맥락 로딩 강제](docs/troubleshooting/session-context-bootstrap.md) - 각 새 세션이 본인 역할 관련 파일(kanban/sprints/decisions/meetings/metrics)을 첫 행동으로 읽게 하고 완료 신호를 강제
 - [tmux 자동 설치](docs/troubleshooting/tmux-auto-install.md) - npm postinstall + start 시점 두 단계 폴백. macOS+brew 는 자동 실행, Linux 는 sudo 명령어 안내만
+- [같은 역할 동시 디스패치 → duplicate session](docs/troubleshooting/duplicate-tmux-session-same-role.md) - tmux 세션명이 `ip-<role>` 이라 같은 역할에 할당된 태스크 2개 이상이 병렬로 워크플로우에 진입하면 충돌. Orchestrator 에 `processingRoles` 락을 추가해 역할 단위로 직렬화. 새 dispatch 경로 추가 시 이 락 유지 필수. MockTmuxAdapter 도 duplicate 이름을 throw 하도록 변경됨
+- [재시도 소진이 거짓 성공으로](docs/troubleshooting/workflow-retry-exhaustion-false-success.md) - `WorkflowEngine.runWorkflow` 가 `workflowSucceeded = !aborted()` 로만 판정해서 재시도 소진(break)도 성공 처리. `nextPhase === null` 에 도달한 성공 경로에서만 `workflowSucceeded = true` 로 set 하도록 변경. **규칙: 복수 종료 경로 루프에서 "성공"은 반드시 성공 조건 성립 지점에서만 true 로 표시하고, 루프 바깥에서 역추론하지 말 것.**
+- [metrics.json 스키마 드리프트](docs/troubleshooting/metrics-store-schema-drift.md) - 에이전트가 자유 형식으로 `metrics.json` 을 덮어쓰면 `MetricsManager` 평가 루틴이 `undefined.some(...)` 로 크래시. `isTaskMetrics` 타입가드 도입, `getTasksNeedingEvaluation`/`getTaskMetrics` 가 불일치 엔트리는 건너뛰거나 null 반환. **규칙: 에이전트가 쓰는 파일(JSON/MD)을 소비하는 쪽은 반드시 타입가드로 좁힐 것. `FileStore.read()` 결과는 unknown 취급.**
+- [기동 시 in_progress 고아 재개](docs/troubleshooting/startup-resume-in-flight-tasks.md) - `processNewTasks` 는 `backlog`/`todo` 만 픽업하므로 비정상 종료 후 남은 `in_progress`/`testing`/`review` 태스크가 방치됨. `Orchestrator.resumeInFlightTasks()` 를 신설해 `start()` 1회 호출. `task.phase` 부터 재개, `isAgentRunning` 으로 실제 세션 중복 체크. 공통 디스패치는 `dispatchWorkflow()` helper 로 통합. **규칙: 새 `TaskStatus`/phase 를 추가하면 `resumeStatuses` 셋을 같이 갱신. 런타임 디스패치(`processNewTasks`)와 기동 재개(`resumeInFlightTasks`) 경계는 섞지 말 것.**
+- [페이즈 산출물 파일명 불일치 → 재시도 루프](docs/troubleshooting/planning-output-filename-mismatch.md) - 에이전트가 의미 기반 파일명(`mvp-core-features.md`)으로 기획 문서를 저장하는데 워크플로우는 `feature-<slug>.md` 를 기대 → 실패 재시도. `startAgent` 에 `expectedOutputs`/`completionCriteria` 를 전달해 태스크 지시에 필수 산출물 경로를 명시. **규칙: 페이즈 추가 시 기대 산출물 경로를 반드시 지시에 주입. 시스템 프롬프트는 역할 불변, 경로/파일명은 태스크별 지시.**
 
 ## 테스트
 - 단위 테스트: `npm run test:unit` — `tests/unit/`
-- E2E 테스트: `npm run test:e2e` — `tests/e2e/` (37 tests, ~5–7초)
+- E2E 테스트: `npm run test:e2e` — `tests/e2e/` (~39 tests, ~5–7초)
 - 전체: `npm test`
 
 E2E 는 tmux/Claude CLI 를 MockTmuxAdapter 로 대체하되 파일시스템·chokidar·Express

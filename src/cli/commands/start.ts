@@ -8,7 +8,9 @@ export function registerStartCommand(program: Command): void {
   program
     .command('start')
     .description('에이전트 팀 가동 + 대시보드 시작')
-    .action(async () => {
+    .option('--no-ceo', 'CEO 자동 기동 건너뛰기 (기존 스프린트를 유지하고 워처만 가동)')
+    .option('--force-ceo', '기존 스프린트가 있어도 CEO 를 강제 기동해 재계획')
+    .action(async (opts: { ceo?: boolean; forceCeo?: boolean }) => {
       const projectRoot = process.cwd();
 
       if (!isPerpetualEngineProject(projectRoot)) {
@@ -16,7 +18,11 @@ export function registerStartCommand(program: Command): void {
         process.exit(1);
       }
 
-      const orchestrator = new Orchestrator(projectRoot);
+      // commander 는 `--no-ceo` 를 opts.ceo === false 로, `--force-ceo` 를 opts.forceCeo === true 로 전달한다
+      const autoStartCeo: 'always' | 'if-empty' | false =
+        opts.ceo === false ? false : opts.forceCeo ? 'always' : 'if-empty';
+
+      const orchestrator = new Orchestrator(projectRoot, { autoStartCeo });
       await orchestrator.start();
     });
 }

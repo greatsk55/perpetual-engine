@@ -105,10 +105,11 @@ my-startup/
 │   ├── decisions/               # 의사결정 기록
 │   ├── planning/                # 기획 문서
 │   ├── design/                  # 디자인 문서 및 명세
-│   │   └── mockups/             # Pencil MCP 시안 파일
+│   │   ├── system/              # tokens.css / components.css / design-system.md (디자인 시스템 SSOT)
+│   │   └── mockups/             # HTML 목업 (*.html + meta.json) — Design Canvas 자동 감지
 │   ├── development/             # 개발 기획 및 기술 문서
 │   ├── marketing/               # 마케팅 전략 및 문서
-│   │   └── mockups/             # 마케팅 Pencil MCP 시안 파일
+│   │   └── mockups/             # 마케팅 HTML 목업 (*.html + meta.json)
 │   └── changelog/               # 변경사항 문서
 ├── workspace/                   # 실제 프로덕트 작업 공간
 │   └── (에이전트들이 생성하는 코드/자산)
@@ -128,7 +129,7 @@ my-startup/
 | **CEO** | 총괄 리더 | 전사 전략, 우선순위 결정, 리소스 배분, 스프린트 계획, 최종 의사결정 | 항상 회사 목표와 프로덕트 비전에 정렬된 판단을 해야 함 |
 | **CTO** | 기술 총괄 | 기술 아키텍처, 기술 스택 결정, 코드 리뷰, 기술 부채 관리, 배포 관리 | 확장성·유지보수성을 최우선으로 고려. 최소 단위 기능으로 쪼개어 점진적 개발 |
 | **PO** | 프로덕트 오너 | 요구사항 정의, 유저 스토리 작성, 백로그 관리, 우선순위 조정, 수용 기준 정의 | 사용자 가치 중심 사고. MVP 원칙 준수. 기능 하나하나의 가치를 명확히 정의 |
-| **Designer** | 디자인 총괄 | UI/UX 디자인, 디자인 시스템, 프로토타이핑, 사용성 검토. **모든 디자인 작업은 반드시 Pencil MCP를 사용하여 시안 생성** | 일관된 디자인 시스템 유지. 구현 가능성 고려. 접근성 준수. **Pencil MCP 외의 디자인 도구 사용 금지** |
+| **Designer** | 디자인 총괄 | UI/UX 디자인, 디자인 시스템, 프로토타이핑, 사용성 검토. **모든 디자인 산출물은 HTML + CSS 목업** (`docs/design/system/` 의 토큰/컴포넌트 사용) | 일관된 디자인 시스템 유지. 구현 가능성 고려. 접근성(WCAG AA) 준수. **Pencil / Figma 등 외부 디자인 툴 사용 금지** |
 | **QA** | 품질 보증 | 테스트 전략, 테스트 케이스 작성, 버그 리포트, 회귀 테스트, 배포 승인 | 모든 기능에 대한 테스트 커버리지 확보. 배포 전 반드시 승인 필요 |
 | **Marketer** | 마케팅 총괄 | 시장 분석, 마케팅 전략, 콘텐츠 제작, 성과 분석, 사용자 획득 | 데이터 기반 의사결정. ROI 중심 마케팅. 프로덕트 가치와 일치하는 메시징 |
 
@@ -144,7 +145,7 @@ my-startup/
 6. **투명성**: 작업 상태를 칸반보드에 실시간 반영한다
 7. **협업 의무**: 다른 에이전트에게 영향을 주는 결정은 반드시 회의를 통해 합의한다
 8. **문서 최신화**: 워크플로우의 마지막 단계에서 반드시 문서화 및 최신화를 수행한다
-9. **Pencil MCP 디자인 원칙**: 모든 UI/UX 디자인은 반드시 Pencil MCP를 통해 시안을 생성한다. 개발 시 Pencil MCP 시안을 구현의 유일한 UI 기준으로 삼는다. 시안 없이 UI를 임의로 구현하는 것을 금지한다
+9. **HTML 목업 디자인 원칙**: 모든 UI/UX 디자인은 Designer 가 `docs/design/mockups/<feature>/*.html` + `meta.json` 형태로 제공한다 (디자인 시스템 토큰/컴포넌트 기반). 개발 시 이 HTML 시안과 토큰을 구현의 유일한 UI 기준으로 삼는다. 시안 없이 UI 를 임의로 구현하는 것을 금지한다. Pencil / Figma 등 외부 디자인 툴을 사용하지 않는다
 
 ### 4.3 에이전트 추가 고용
 
@@ -315,12 +316,12 @@ tmux session: perpetual-engine
 |------|------|
 | **담당** | Designer (리드), PO |
 | **세션** | 새로운 세션에서 실행 |
-| **입력** | 기획 문서 (`docs/planning/feature-xxx.md`) 확인으로 컨텍스트 유지 |
-| **필수 도구** | **Pencil MCP** - 모든 UI/UX 시안은 반드시 Pencil MCP를 통해 생성 |
-| **활동** | Pencil MCP로 UI/UX 시안 생성, 컴포넌트 설계, 디자인 명세 작성 |
-| **산출물** | Pencil MCP 시안 파일 (`docs/design/mockups/feature-xxx/`), 디자인 문서 (`docs/design/feature-xxx.md`) |
-| **회의** | 디자인 리뷰 (Designer-PO-CTO) - Pencil MCP 시안 기반으로 리뷰 |
-| **완료 조건** | PO 승인, Pencil MCP 시안 확정, 디자인 문서 확정 |
+| **입력** | 기획 문서 (`docs/planning/feature-xxx.md`) + 디자인 시스템 (`docs/design/system/`) 확인으로 컨텍스트 유지 |
+| **산출 형식** | **HTML + CSS 목업** — `tokens.css` / `components.css` 를 참조한 피처 목업 + `meta.json` (Pencil / Figma 등 외부 디자인 툴 사용 안 함) |
+| **활동** | 디자인 시스템(토큰·컴포넌트) 선반영 → 피처 HTML 목업 작성 → `meta.json` 선언 → Design Canvas(`/design`)에서 렌더 확인 |
+| **산출물** | 피처 목업 (`docs/design/mockups/feature-xxx/*.html` + `meta.json`), 디자인 문서 (`docs/design/feature-xxx.md`), 필요 시 토큰/컴포넌트 업데이트와 CHANGELOG |
+| **회의** | 디자인 리뷰 (Designer-PO-CTO) — Design Canvas 에 렌더된 HTML 시안 기반 |
+| **완료 조건** | PO 승인, 시안이 Design Canvas 에서 정상 렌더, 디자인 문서 확정 |
 
 #### Phase 3: 개발 (Development)
 
@@ -328,11 +329,11 @@ tmux session: perpetual-engine
 |------|------|
 | **담당** | CTO (리드), 하위 에이전트들 |
 | **세션** | 새로운 세션에서 실행 |
-| **입력** | 기획 문서 + **Pencil MCP 시안** + 디자인 문서 + 개발 문서 (`docs/development/`) 확인으로 컨텍스트 유지 |
-| **UI 구현 기준** | **반드시 Pencil MCP 시안을 참조하여 UI를 구현**. 시안과 구현 간 불일치 시 Designer에게 확인 요청 |
-| **활동** | Pencil MCP 시안 기반 UI 코드 구현, 비즈니스 로직 구현, 코드 리뷰, 단위 테스트 작성 |
+| **입력** | 기획 문서 + **HTML 목업**(`docs/design/mockups/feature-xxx/`) + `tokens.css` / `components.css` + 디자인 문서 + 개발 문서 (`docs/development/`) 확인으로 컨텍스트 유지 |
+| **UI 구현 기준** | **반드시 HTML 목업과 디자인 시스템 토큰을 참조하여 UI를 구현**. 시안과 구현 간 불일치 시 Designer 에게 확인 요청 |
+| **활동** | HTML 시안을 동일 토큰(`var(--…)`)과 `.ip-*` 컴포넌트 규약으로 실제 제품 코드에 재현, 비즈니스 로직 구현, 코드 리뷰, 단위 테스트 작성 |
 | **산출물** | 구현 코드, 개발 문서 (`docs/development/feature-xxx.md`) |
-| **완료 조건** | CTO 코드 리뷰 완료, **Pencil MCP 시안과 UI 일치 확인**, 칸반보드 상태 업데이트 |
+| **완료 조건** | CTO 코드 리뷰 완료, **HTML 시안과 UI 일치 확인**, 칸반보드 상태 업데이트 |
 
 #### Phase 4: 테스트 (Testing)
 
@@ -390,10 +391,10 @@ tmux session: perpetual-engine
 |------|------|
 | **담당** | Designer (리드), Marketer |
 | **세션** | 새로운 세션에서 실행 |
-| **필수 도구** | **Pencil MCP** - 모든 마케팅 시각 자산도 Pencil MCP를 통해 생성 |
-| **입력** | 마케팅 전략 문서 |
-| **활동** | Pencil MCP로 크리에이티브 시안 제작, 랜딩페이지 디자인, 콘텐츠 디자인 |
-| **산출물** | Pencil MCP 시안 파일 (`docs/marketing/mockups/`), 마케팅 디자인 자산 |
+| **산출 형식** | **HTML + CSS 목업** — 제품과 동일한 디자인 시스템(`tokens.css`/`components.css`) 을 재사용 (Pencil / Figma 등 외부 툴 사용 안 함) |
+| **입력** | 마케팅 전략 문서, 디자인 시스템 |
+| **활동** | 크리에이티브 시안·랜딩페이지·콘텐츠를 HTML 목업으로 제작하고 `meta.json` 선언 → Design Canvas 에서 확인 |
+| **산출물** | 마케팅 HTML 시안 (`docs/marketing/mockups/*.html` + `meta.json`), 마케팅 디자인 자산 |
 
 #### Phase 3: 마케팅 실행
 
@@ -496,15 +497,17 @@ Priority Levels:
 │       │                                                   │
 │       ▼ docs/planning/feature-xxx.md (산출)               │
 │       │                                                   │
-│  [디자인 세션] (Pencil MCP 사용)                          │
+│  [디자인 세션] (HTML 목업 + 디자인 시스템)                │
 │       │ docs/planning/feature-xxx.md (입력)               │
+│       │ docs/design/system/tokens.css,components.css (입력)│
 │       ▼ docs/design/feature-xxx.md (산출)                 │
-│       ▼ docs/design/mockups/feature-xxx/ (Pencil 시안)    │
+│       ▼ docs/design/mockups/feature-xxx/*.html+meta.json  │
 │       │                                                   │
 │  [개발 세션]                                              │
 │       │ docs/planning/feature-xxx.md (입력)               │
 │       │ docs/design/feature-xxx.md (입력)                 │
-│       │ docs/design/mockups/feature-xxx/ (Pencil 시안)    │
+│       │ docs/design/mockups/feature-xxx/*.html (입력)     │
+│       │ docs/design/system/tokens.css (입력)              │
 │       │ docs/development/feature-xxx.md (입력/산출)       │
 │       ▼                                                   │
 │  [테스트 세션]                                            │
@@ -620,7 +623,7 @@ Priority Levels:
 | **Agent Detail** | 특정 에이전트의 현재 작업, 세션 로그, 하위 에이전트 |
 | **Meetings** | 회의록 목록 및 상세 내용 |
 | **Decisions** | 의사결정 기록 목록 및 상세 내용 |
-| **Design Mockups** | Pencil MCP로 생성된 디자인 시안 갤러리 및 비교 뷰 |
+| **Design Canvas** | HTML 목업 갤러리(`/design`) — 줌/팬, 디바이스 필터, PNG 추출 지원 |
 | **Documents** | 전체 문서 탐색기 |
 | **Sprint** | 현재/과거 스프린트 현황, 번다운 차트 |
 | **Settings** | 회사 목표, 에이전트 설정, 워크플로우 설정 |
@@ -727,7 +730,7 @@ perpetual-engine status         # 현재 상태 확인
 | **Agent Runtime** | Node.js | Claude Code CLI 연동 |
 | **Session Management** | tmux | 멀티 에이전트 병렬 실행 |
 | **State Management** | File-based JSON | 단순성, Git 추적 가능 |
-| **디자인 도구** | Pencil MCP | Designer 에이전트의 유일한 디자인 도구. 모든 UI/UX 시안 생성 및 개발 구현 기준 |
+| **디자인 스택** | HTML + CSS (`tokens.css` + `components.css`) | Designer 산출물 형식. `meta.json` 과 함께 Design Canvas(`/design`) 로 렌더되고 CTO 가 동일 토큰으로 제품 구현. 외부 디자인 툴(Pencil/Figma) 사용 안 함 |
 | **문서 관리** | Markdown + Git | 버전 관리, 충돌 감지 |
 
 ### 11.3 Claude Code 연동
@@ -811,7 +814,8 @@ tmux new-session -d -s "cto" \
 | **페이즈 (Phase)** | 워크플로우의 단계 (기획, 디자인, 개발, 테스트, 배포) |
 | **스프린트 (Sprint)** | 일정 기간 동안 수행할 작업 묶음 단위 |
 | **칸반보드 (Kanban Board)** | Task 진행 상태를 시각적으로 보여주는 보드 |
-| **Pencil MCP** | Designer 에이전트가 UI/UX 시안을 생성하는 유일한 디자인 도구. 개발 시 UI 구현 기준 |
+| **Design Canvas** | 대시보드 `/design` 페이지. `docs/design/mockups/**/meta.json` 을 스캔해 HTML 목업을 줌/팬/PNG 추출 가능한 캔버스로 렌더. 상단 Design 탭에서 진입 |
+| **HTML 목업** | Designer 산출물. `docs/design/mockups/<feature>/*.html` + `meta.json`. `docs/design/system/` 의 토큰(`var(--…)`)과 컴포넌트(`.ip-*`) 만 사용하며 CTO 가 동일 토큰으로 제품 코드에 재현함 |
 
 ---
 
@@ -861,7 +865,7 @@ responsibilities:               # 담당 업무 목록
 rules:                          # 에이전트가 지켜야 할 규칙
   - string
 
-required_mcp_tools:             # 필수 MCP 도구 (예: Designer → pencil)
+required_mcp_tools:             # 필수 MCP 도구 (선택. 현재 기본 팀은 없음)
   - string
 
 can_create_sub_agents: boolean  # 하위 에이전트 생성 가능 여부

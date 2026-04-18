@@ -69,9 +69,8 @@ After `perpetual-engine start`, open `http://localhost:3000` to see the kanban b
 ## Prerequisites
 
 - **Node.js** >= 18.0.0
-- **tmux** — for parallel agent sessions
+- **tmux** — for parallel agent sessions (auto-installed on macOS/Homebrew, manual on Linux)
 - **Claude Code CLI** — each agent runs as a Claude Code session
-- **[Pencil](https://www.pencil.dev/)** + **Pencil MCP** — **required** design tool for the Designer / Marketer agents
 
 ```bash
 # Install tmux (macOS)
@@ -81,19 +80,15 @@ brew install tmux
 sudo apt install tmux
 ```
 
-### Installing Pencil
+### Design stack
 
-The Designer and Marketer agents produce **all** UI/UX and marketing mockups through [Pencil](https://www.pencil.dev/). Without Pencil installed, the design phase cannot run.
+The Designer and Marketer agents produce **HTML + CSS mockups** — no external design tool (Pencil / Figma) is required or supported.
 
-1. **Install the Pencil app** — download the installer for your OS from [pencil.dev](https://www.pencil.dev/).
-   - macOS: `.dmg`
-   - Windows: installer
-   - Linux: `.deb` or `.AppImage` (X11 recommended; Wayland/Hyprland has known issues)
-   - VS Code / Cursor users can also install the "Pencil" extension from the Extensions marketplace.
-2. **Enable Pencil MCP** — **the Pencil MCP server starts automatically when you open the Pencil app**. No `claude mcp add` command, npm install, or API key is required.
-3. **Verify** — with Pencil running, `perpetual-engine start` will let the Designer agent produce `.pen` mockups in `docs/design/mockups/` and `docs/marketing/mockups/` through the MCP connection.
-
-> **Note:** Keep the Pencil app open while agents are working on design tasks — the MCP server lives inside the app process.
+- Design system (SSOT): `docs/design/system/tokens.css`, `components.css`, `design-system.md`
+- Feature mockups: `docs/design/mockups/<feature>/*.html` + `meta.json`
+- Marketing mockups: `docs/marketing/mockups/*.html` + `meta.json`
+- Render & browse: **Design Canvas** tab in the dashboard (or open `http://localhost:3000/design`) — zoom, pan, device filter, PNG export
+- CTO reuses the same tokens (`var(--…)`) and `.ip-*` components in the real product codebase, keeping design ↔ implementation in sync
 
 ## Installation
 

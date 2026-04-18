@@ -1,342 +1,255 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#0b1020"/>
-      <stop offset="100%" stop-color="#050815"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E1D1B"/>
+      <stop offset="100%" stop-color="#141311"/>
     </linearGradient>
-    <linearGradient id="windowBar" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#1e293b"/>
-      <stop offset="100%" stop-color="#0f172a"/>
-    </linearGradient>
-    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#a78bfa"/>
-      <stop offset="100%" stop-color="#f0abfc"/>
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
-      <feOffset dx="0" dy="6" result="offsetblur"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+    <filter id="winShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="16"/>
+      <feOffset dx="0" dy="18" result="off"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.45"/></feComponentTransfer>
       <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
 
-  <rect width="1600" height="1000" fill="url(#bgGrad)"/>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
 
-  <g filter="url(#shadow)">
-    <rect x="40" y="40" width="1520" height="920" rx="14" fill="#0f172a" stroke="#1e293b"/>
+  <!-- Browser window frame -->
+  <g filter="url(#winShadow)">
+    <rect x="40" y="40" width="1520" height="920" rx="14" fill="#262624" stroke="#3D3B36"/>
 
-    <rect x="40" y="40" width="1520" height="44" rx="14" fill="url(#windowBar)"/>
-    <path d="M 40 84 L 1560 84" stroke="#1e293b"/>
-    <g transform="translate(66, 62)">
-      <circle cx="0" cy="0" r="7" fill="#ef4444"/>
-      <circle cx="20" cy="0" r="7" fill="#fbbf24"/>
-      <circle cx="40" cy="0" r="7" fill="#10b981"/>
+    <!-- Window chrome -->
+    <rect x="40" y="40" width="1520" height="46" rx="14" fill="#2F2E2C"/>
+    <path d="M 40 86 L 1560 86" stroke="#3D3B36"/>
+    <g transform="translate(66, 63)">
+      <circle cx="0" cy="0" r="6.5" fill="#C4644E"/>
+      <circle cx="20" cy="0" r="6.5" fill="#D4A24A"/>
+      <circle cx="40" cy="0" r="6.5" fill="#8FA96B"/>
     </g>
-    <g transform="translate(700, 56)">
-      <rect width="200" height="22" rx="11" fill="#0b1020" stroke="#334155"/>
-      <text x="100" y="16" font-family="-apple-system, sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle">🔒 localhost:3000</text>
-    </g>
-
-    <g transform="translate(40, 100)">
-      <rect width="260" height="860" fill="#0b1020"/>
-      <path d="M 300 0 L 300 860" stroke="#1e293b"/>
-
-      <text x="24" y="40" font-family="-apple-system, sans-serif" font-size="20" font-weight="800" fill="url(#brandGrad)">Perpetual Engine</text>
-      <text x="24" y="58" font-family="-apple-system, sans-serif" font-size="10" fill="#64748b">v0.1.0 · Dashboard</text>
-
-      <g font-family="-apple-system, sans-serif" font-size="13" fill="#94a3b8" transform="translate(16, 100)">
-        <g transform="translate(0, 0)">
-          <rect width="228" height="34" rx="8" fill="#1e1b4b" stroke="#6366f1"/>
-          <text x="16" y="22" fill="#c7d2fe" font-weight="600">📊  Kanban Board</text>
-        </g>
-        <text x="16" y="64">🖥  Agents</text>
-        <text x="16" y="94">💬  Meetings</text>
-        <text x="16" y="124">📈  Metrics</text>
-        <text x="16" y="154">📝  Activity Feed</text>
-        <text x="16" y="184">📂  Documents</text>
-        <text x="16" y="214">⚙  Settings</text>
-      </g>
-
-      <g transform="translate(16, 420)">
-        <text font-family="-apple-system, sans-serif" font-size="10" font-weight="600" fill="#64748b" letter-spacing="1">AGENT STATUS</text>
-        <g font-family="-apple-system, sans-serif" font-size="12" fill="#cbd5e1" transform="translate(0, 20)">
-          <g transform="translate(0, 0)">
-            <circle cx="8" cy="12" r="5" fill="#10b981"/>
-            <text x="24" y="16">CEO</text>
-            <text x="220" y="16" text-anchor="end" fill="#64748b">active</text>
-          </g>
-          <g transform="translate(0, 28)">
-            <circle cx="8" cy="12" r="5" fill="#10b981"/>
-            <text x="24" y="16">CTO</text>
-            <text x="220" y="16" text-anchor="end" fill="#64748b">coding</text>
-          </g>
-          <g transform="translate(0, 56)">
-            <circle cx="8" cy="12" r="5" fill="#fbbf24"/>
-            <text x="24" y="16">PO</text>
-            <text x="220" y="16" text-anchor="end" fill="#64748b">meeting</text>
-          </g>
-          <g transform="translate(0, 84)">
-            <circle cx="8" cy="12" r="5" fill="#10b981"/>
-            <text x="24" y="16">Designer</text>
-            <text x="220" y="16" text-anchor="end" fill="#64748b">idle</text>
-          </g>
-          <g transform="translate(0, 112)">
-            <circle cx="8" cy="12" r="5" fill="#10b981"/>
-            <text x="24" y="16">QA</text>
-            <text x="220" y="16" text-anchor="end" fill="#64748b">testing</text>
-          </g>
-          <g transform="translate(0, 140)">
-            <circle cx="8" cy="12" r="5" fill="#64748b"/>
-            <text x="24" y="16">Marketer</text>
-            <text x="220" y="16" text-anchor="end" fill="#64748b">paused</text>
-          </g>
-          <g transform="translate(0, 178)">
-            <circle cx="8" cy="12" r="5" fill="#a78bfa"/>
-            <text x="24" y="16" fill="#f0abfc">⟳ GDPR 변호사</text>
-            <text x="220" y="16" text-anchor="end" fill="#a78bfa">4:12</text>
-          </g>
-        </g>
-      </g>
-
-      <g transform="translate(16, 720)">
-        <rect width="228" height="110" rx="10" fill="#0a0d1c" stroke="#1e293b"/>
-        <text x="16" y="24" font-family="-apple-system, sans-serif" font-size="11" fill="#64748b" letter-spacing="1">CURRENT SPRINT</text>
-        <text x="16" y="46" font-family="-apple-system, sans-serif" font-size="13" fill="#e2e8f0" font-weight="600">Sprint 3 · MVP Launch</text>
-        <text x="16" y="64" font-family="-apple-system, sans-serif" font-size="11" fill="#94a3b8">Day 8 / 14 · 57%</text>
-        <rect x="16" y="76" width="196" height="8" rx="4" fill="#1e293b"/>
-        <rect x="16" y="76" width="112" height="8" rx="4" fill="url(#brandGrad)"/>
-        <text x="16" y="100" font-family="-apple-system, sans-serif" font-size="10" fill="#64748b">12 tasks · 7 done · 3 in progress</text>
-      </g>
+    <g transform="translate(660, 55)">
+      <rect width="280" height="26" rx="13" fill="#1F1E1C" stroke="#3D3B36"/>
+      <text x="140" y="18" font-family="ui-monospace, Menlo, monospace" font-size="12" fill="#8A8780" text-anchor="middle">localhost:3000</text>
     </g>
 
-    <g transform="translate(320, 100)">
-      <text x="0" y="36" font-family="-apple-system, sans-serif" font-size="24" font-weight="700" fill="#f1f5f9">Kanban Board</text>
-      <text x="0" y="58" font-family="-apple-system, sans-serif" font-size="13" fill="#94a3b8">실시간 동기화 · WebSocket</text>
+    <!-- Top nav bar -->
+    <g transform="translate(40, 86)">
+      <rect width="1520" height="58" fill="#262624"/>
+      <path d="M 0 58 L 1520 58" stroke="#3D3B36"/>
 
-      <g transform="translate(900, 24)" font-family="-apple-system, sans-serif">
-        <rect x="0" y="0" width="140" height="32" rx="8" fill="#1e1b4b" stroke="#6366f1"/>
-        <text x="70" y="21" font-size="12" fill="#c7d2fe" text-anchor="middle">+ New Task</text>
-        <rect x="150" y="0" width="70" height="32" rx="8" fill="#0a0d1c" stroke="#334155"/>
-        <text x="185" y="21" font-size="12" fill="#94a3b8" text-anchor="middle">Filter</text>
+      <!-- Brand block -->
+      <g transform="translate(28, 16)">
+        <rect width="30" height="30" rx="8" fill="#D97757"/>
+        <text x="15" y="22" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600" fill="#FFFFFF" text-anchor="middle">∞</text>
+        <text x="44" y="15" font-family="ui-serif, Georgia, serif" font-size="15" font-weight="600" fill="#E8E6E3">Perpetual Engine</text>
+        <text x="44" y="28" font-family="ui-sans-serif, -apple-system, sans-serif" font-size="11" fill="#B4B1AB">Acme AI</text>
       </g>
 
-      <g transform="translate(0, 90)">
+      <!-- Tabs -->
+      <g transform="translate(620, 22)" font-family="ui-sans-serif, -apple-system, sans-serif" font-size="13" font-weight="500">
         <g>
-          <text x="0" y="0" font-family="-apple-system, sans-serif" font-size="13" font-weight="700" fill="#94a3b8" letter-spacing="1.5">BACKLOG · 5</text>
+          <rect x="-10" y="-4" width="72" height="26" rx="7" fill="#36352F"/>
+          <text fill="#E8E6E3" y="14">Overview</text>
+        </g>
+        <text x="80" y="14" fill="#B4B1AB">Kanban</text>
+        <text x="148" y="14" fill="#B4B1AB">Organization</text>
+        <text x="246" y="14" fill="#B4B1AB">Documents</text>
+        <text x="330" y="14" fill="#B4B1AB">Messages</text>
+        <text x="408" y="14" fill="#B4B1AB">Settings</text>
+      </g>
 
-          <g transform="translate(0, 16)">
-            <rect width="290" height="84" rx="10" fill="#111827" stroke="#1f2937"/>
-            <rect x="0" y="0" width="4" height="84" rx="2" fill="#64748b"/>
-            <text x="16" y="22" font-family="monospace" font-size="10" fill="#64748b">TASK-18</text>
-            <text x="240" y="22" font-family="monospace" font-size="10" fill="#fbbf24" text-anchor="end">MID</text>
-            <text x="16" y="44" font-family="-apple-system, sans-serif" font-size="13" fill="#e2e8f0" font-weight="600">프라이싱 페이지 초안</text>
-            <g transform="translate(16, 58)">
-              <rect width="50" height="18" rx="9" fill="#0c4a6e"/>
-              <text x="25" y="13" font-size="10" fill="#67e8f9" text-anchor="middle" font-family="-apple-system, sans-serif">po</text>
-              <rect x="60" y="0" width="66" height="18" rx="9" fill="#1f2937"/>
-              <text x="93" y="13" font-size="10" fill="#94a3b8" text-anchor="middle" font-family="-apple-system, sans-serif">feature</text>
-            </g>
-          </g>
+      <!-- Message CTA -->
+      <g transform="translate(1384, 15)">
+        <rect width="112" height="30" rx="8" fill="#D97757"/>
+        <g transform="translate(12, 8)" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M0 7l14-7-5 16-3-7-6-2z"/>
+        </g>
+        <text x="36" y="19" font-family="ui-sans-serif, sans-serif" font-size="13" font-weight="500" fill="#FFFFFF">Message</text>
+      </g>
+    </g>
 
-          <g transform="translate(0, 112)">
-            <rect width="290" height="84" rx="10" fill="#111827" stroke="#1f2937"/>
-            <rect x="0" y="0" width="4" height="84" rx="2" fill="#64748b"/>
-            <text x="16" y="22" font-family="monospace" font-size="10" fill="#64748b">TASK-19</text>
-            <text x="240" y="22" font-family="monospace" font-size="10" fill="#94a3b8" text-anchor="end">LOW</text>
-            <text x="16" y="44" font-family="-apple-system, sans-serif" font-size="13" fill="#e2e8f0" font-weight="600">FAQ 페이지 카피 검토</text>
-            <g transform="translate(16, 58)">
-              <rect width="78" height="18" rx="9" fill="#831843"/>
-              <text x="39" y="13" font-size="10" fill="#fbcfe8" text-anchor="middle" font-family="-apple-system, sans-serif">designer</text>
-              <rect x="88" y="0" width="50" height="18" rx="9" fill="#1f2937"/>
-              <text x="113" y="13" font-size="10" fill="#94a3b8" text-anchor="middle" font-family="-apple-system, sans-serif">copy</text>
-            </g>
-          </g>
+    <!-- Main content -->
+    <g transform="translate(40, 144)">
+      <!-- Hero header -->
+      <g transform="translate(40, 32)">
+        <text font-family="ui-serif, Georgia, serif" font-size="34" font-weight="600" fill="#E8E6E3" letter-spacing="-0.5">Acme AI</text>
+        <text y="30" font-family="ui-sans-serif, -apple-system, sans-serif" font-size="14" fill="#B4B1AB">Build the fastest path to $1M ARR with autonomous agents.</text>
+      </g>
 
-          <g transform="translate(0, 208)">
-            <rect width="290" height="84" rx="10" fill="#111827" stroke="#1f2937"/>
-            <rect x="0" y="0" width="4" height="84" rx="2" fill="#64748b"/>
-            <text x="16" y="22" font-family="monospace" font-size="10" fill="#64748b">TASK-20</text>
-            <text x="240" y="22" font-family="monospace" font-size="10" fill="#fb7185" text-anchor="end">HIGH</text>
-            <text x="16" y="44" font-family="-apple-system, sans-serif" font-size="13" fill="#e2e8f0" font-weight="600">온보딩 A/B 테스트 설계</text>
-            <g transform="translate(16, 58)">
-              <rect width="58" height="18" rx="9" fill="#78350f"/>
-              <text x="29" y="13" font-size="10" fill="#fed7aa" text-anchor="middle" font-family="-apple-system, sans-serif">mkt</text>
-              <rect x="68" y="0" width="72" height="18" rx="9" fill="#1f2937"/>
-              <text x="104" y="13" font-size="10" fill="#94a3b8" text-anchor="middle" font-family="-apple-system, sans-serif">metrics</text>
-            </g>
+      <!-- KPI grid -->
+      <g transform="translate(40, 108)" font-family="ui-sans-serif, -apple-system, sans-serif">
+        <!-- Card 1 -->
+        <g>
+          <rect width="340" height="116" rx="10" fill="#2F2E2C" stroke="#3D3B36"/>
+          <text x="20" y="30" font-size="11" fill="#8A8780" letter-spacing="1.5" font-weight="500">TOTAL TASKS</text>
+          <text x="20" y="76" font-family="ui-serif, Georgia, serif" font-size="34" font-weight="600" fill="#E8E6E3">34</text>
+          <text x="20" y="100" font-size="12" fill="#8A8780">All tickets</text>
+        </g>
+        <!-- Card 2 -->
+        <g transform="translate(360, 0)">
+          <rect width="340" height="116" rx="10" fill="#2F2E2C" stroke="#3D3B36"/>
+          <text x="20" y="30" font-size="11" fill="#8A8780" letter-spacing="1.5" font-weight="500">COMPLETED</text>
+          <text x="20" y="76" font-family="ui-serif, Georgia, serif" font-size="34" font-weight="600" fill="#8FA96B">21</text>
+          <text x="20" y="100" font-size="12" fill="#8A8780">62% of total</text>
+        </g>
+        <!-- Card 3 -->
+        <g transform="translate(720, 0)">
+          <rect width="340" height="116" rx="10" fill="#2F2E2C" stroke="#3D3B36"/>
+          <text x="20" y="30" font-size="11" fill="#8A8780" letter-spacing="1.5" font-weight="500">ACTIVE AGENTS</text>
+          <text x="20" y="76" font-family="ui-serif, Georgia, serif" font-size="34" font-weight="600" fill="#D97757">4</text>
+          <text x="20" y="100" font-size="12" fill="#8A8780">Currently working</text>
+        </g>
+        <!-- Card 4 -->
+        <g transform="translate(1080, 0)">
+          <rect width="340" height="116" rx="10" fill="#2F2E2C" stroke="#3D3B36"/>
+          <text x="20" y="30" font-size="11" fill="#8A8780" letter-spacing="1.5" font-weight="500">SPRINT</text>
+          <text x="20" y="76" font-family="ui-serif, Georgia, serif" font-size="28" font-weight="600" fill="#D4A24A">Sprint 3</text>
+          <text x="20" y="100" font-size="12" fill="#8A8780">MVP Launch · Day 8 / 14</text>
+        </g>
+      </g>
+
+      <!-- Agent team -->
+      <g transform="translate(40, 252)">
+        <rect width="1420" height="284" rx="10" fill="#2F2E2C" stroke="#3D3B36"/>
+        <g transform="translate(24, 24)">
+          <text font-family="ui-serif, Georgia, serif" font-size="17" font-weight="600" fill="#E8E6E3">Agent team</text>
+          <text y="20" font-family="ui-sans-serif, sans-serif" font-size="12" fill="#8A8780">Click any agent to view details</text>
+        </g>
+        <g transform="translate(1180, 24)" font-family="ui-sans-serif, sans-serif">
+          <rect width="92" height="30" rx="8" fill="transparent" stroke="#4D4A43"/>
+          <text x="46" y="20" font-size="12" fill="#E8E6E3" text-anchor="middle">Pause all</text>
+          <g transform="translate(104, 0)">
+            <rect width="92" height="30" rx="8" fill="transparent" stroke="rgba(196,100,78,0.4)"/>
+            <text x="46" y="20" font-size="12" fill="#C4644E" text-anchor="middle">Stop all</text>
           </g>
         </g>
 
-        <g transform="translate(310, 0)">
-          <text x="0" y="0" font-family="-apple-system, sans-serif" font-size="13" font-weight="700" fill="#a78bfa" letter-spacing="1.5">IN PROGRESS · 3</text>
-
-          <g transform="translate(0, 16)">
-            <rect width="290" height="108" rx="10" fill="#1e1b4b" stroke="#6366f1"/>
-            <rect x="0" y="0" width="4" height="108" rx="2" fill="#6366f1"/>
-            <text x="16" y="22" font-family="monospace" font-size="10" fill="#a5b4fc">TASK-12</text>
-            <text x="240" y="22" font-family="monospace" font-size="10" fill="#fb7185" text-anchor="end">HIGH</text>
-            <text x="16" y="44" font-family="-apple-system, sans-serif" font-size="13" fill="#e0e7ff" font-weight="600">로그인 · OAuth 구현</text>
-            <text x="16" y="62" font-family="-apple-system, sans-serif" font-size="11" fill="#a5b4fc">Google / GitHub SSO</text>
-            <g transform="translate(16, 76)">
-              <rect width="50" height="18" rx="9" fill="#0c4a6e"/>
-              <text x="25" y="13" font-size="10" fill="#67e8f9" text-anchor="middle" font-family="-apple-system, sans-serif">cto</text>
-              <rect x="60" y="0" width="66" height="18" rx="9" fill="#1f2937"/>
-              <text x="93" y="13" font-size="10" fill="#94a3b8" text-anchor="middle" font-family="-apple-system, sans-serif">feature</text>
+        <!-- Agent cards -->
+        <g transform="translate(24, 80)" font-family="ui-sans-serif, sans-serif">
+          <!-- CEO -->
+          <g>
+            <rect width="452" height="88" rx="8" fill="#262624" stroke="#3D3B36"/>
+            <rect x="16" y="20" width="44" height="44" rx="10" fill="#D97757"/>
+            <text x="38" y="50" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600" fill="#FFFFFF" text-anchor="middle">C</text>
+            <text x="76" y="36" font-size="14" font-weight="500" fill="#E8E6E3">Ava Kim</text>
+            <text x="76" y="54" font-size="11" fill="#8A8780" letter-spacing="1.5">CEO</text>
+            <!-- status pill -->
+            <g transform="translate(352, 22)">
+              <rect width="84" height="22" rx="11" fill="rgba(143,169,107,0.14)" stroke="rgba(143,169,107,0.28)"/>
+              <circle cx="12" cy="11" r="3.5" fill="#8FA96B"/>
+              <text x="22" y="15" font-size="11" fill="#8FA96B">working</text>
             </g>
-            <g transform="translate(200, 86)">
-              <rect width="72" height="16" rx="8" fill="#064e3b"/>
-              <text x="36" y="12" font-size="9" fill="#6ee7b7" text-anchor="middle" font-family="-apple-system, sans-serif">● coding</text>
+            <text x="76" y="76" font-size="11" fill="#B4B1AB">Drafting Q2 launch narrative</text>
+          </g>
+          <!-- CTO -->
+          <g transform="translate(468, 0)">
+            <rect width="452" height="88" rx="8" fill="#262624" stroke="#3D3B36"/>
+            <rect x="16" y="20" width="44" height="44" rx="10" fill="#8FA96B"/>
+            <text x="38" y="50" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600" fill="#FFFFFF" text-anchor="middle">T</text>
+            <text x="76" y="36" font-size="14" font-weight="500" fill="#E8E6E3">Jun Park</text>
+            <text x="76" y="54" font-size="11" fill="#8A8780" letter-spacing="1.5">CTO</text>
+            <g transform="translate(352, 22)">
+              <rect width="84" height="22" rx="11" fill="rgba(143,169,107,0.14)" stroke="rgba(143,169,107,0.28)"/>
+              <circle cx="12" cy="11" r="3.5" fill="#8FA96B"/>
+              <text x="22" y="15" font-size="11" fill="#8FA96B">working</text>
             </g>
+            <text x="76" y="76" font-size="11" fill="#B4B1AB">OAuth providers · Google / GitHub</text>
+          </g>
+          <!-- PO -->
+          <g transform="translate(936, 0)">
+            <rect width="452" height="88" rx="8" fill="#262624" stroke="#3D3B36"/>
+            <rect x="16" y="20" width="44" height="44" rx="10" fill="#D4A24A"/>
+            <text x="38" y="50" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600" fill="#FFFFFF" text-anchor="middle">P</text>
+            <text x="76" y="36" font-size="14" font-weight="500" fill="#E8E6E3">Soo Lee</text>
+            <text x="76" y="54" font-size="11" fill="#8A8780" letter-spacing="1.5">PO</text>
+            <g transform="translate(352, 22)">
+              <rect width="84" height="22" rx="11" fill="rgba(212,162,74,0.14)" stroke="rgba(212,162,74,0.28)"/>
+              <circle cx="12" cy="11" r="3.5" fill="#D4A24A"/>
+              <text x="22" y="15" font-size="11" fill="#D4A24A">meeting</text>
+            </g>
+            <text x="76" y="76" font-size="11" fill="#B4B1AB">Rate-limit strategy w/ CTO · QA</text>
           </g>
 
-          <g transform="translate(0, 136)">
-            <rect width="290" height="108" rx="10" fill="#1e1b4b" stroke="#6366f1"/>
-            <rect x="0" y="0" width="4" height="108" rx="2" fill="#6366f1"/>
-            <text x="16" y="22" font-family="monospace" font-size="10" fill="#a5b4fc">TASK-14</text>
-            <text x="240" y="22" font-family="monospace" font-size="10" fill="#fbbf24" text-anchor="end">MID</text>
-            <text x="16" y="44" font-family="-apple-system, sans-serif" font-size="13" fill="#e0e7ff" font-weight="600">히어로 섹션 디자인</text>
-            <text x="16" y="62" font-family="-apple-system, sans-serif" font-size="11" fill="#a5b4fc">3종 시안 중 2번째 작업 중</text>
-            <g transform="translate(16, 76)">
-              <rect width="78" height="18" rx="9" fill="#831843"/>
-              <text x="39" y="13" font-size="10" fill="#fbcfe8" text-anchor="middle" font-family="-apple-system, sans-serif">designer</text>
-              <rect x="88" y="0" width="50" height="18" rx="9" fill="#1f2937"/>
-              <text x="113" y="13" font-size="10" fill="#94a3b8" text-anchor="middle" font-family="-apple-system, sans-serif">ui</text>
+          <!-- Designer -->
+          <g transform="translate(0, 104)">
+            <rect width="452" height="88" rx="8" fill="#262624" stroke="#3D3B36"/>
+            <rect x="16" y="20" width="44" height="44" rx="10" fill="#B4766F"/>
+            <text x="38" y="50" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600" fill="#FFFFFF" text-anchor="middle">D</text>
+            <text x="76" y="36" font-size="14" font-weight="500" fill="#E8E6E3">Mia Choi</text>
+            <text x="76" y="54" font-size="11" fill="#8A8780" letter-spacing="1.5">DESIGNER</text>
+            <g transform="translate(352, 22)">
+              <rect width="84" height="22" rx="11" fill="rgba(143,169,107,0.14)" stroke="rgba(143,169,107,0.28)"/>
+              <circle cx="12" cy="11" r="3.5" fill="#8FA96B"/>
+              <text x="22" y="15" font-size="11" fill="#8FA96B">working</text>
             </g>
+            <text x="76" y="76" font-size="11" fill="#B4B1AB">Hero mockup v2 · tokens.css sync</text>
           </g>
-
-          <g transform="translate(0, 256)">
-            <rect width="290" height="108" rx="10" fill="#3b0764" stroke="#a855f7"/>
-            <rect x="0" y="0" width="4" height="108" rx="2" fill="#a855f7"/>
-            <text x="16" y="22" font-family="monospace" font-size="10" fill="#d8b4fe">TASK-15</text>
-            <text x="240" y="22" font-family="monospace" font-size="10" fill="#fb7185" text-anchor="end">HIGH</text>
-            <text x="16" y="44" font-family="-apple-system, sans-serif" font-size="13" fill="#f3e8ff" font-weight="600">API Rate Limiting 전략</text>
-            <text x="16" y="62" font-family="-apple-system, sans-serif" font-size="11" fill="#d8b4fe">🗣 회의 중 (CTO · PO · QA)</text>
-            <g transform="translate(16, 76)">
-              <rect width="78" height="18" rx="9" fill="#581c87"/>
-              <text x="39" y="13" font-size="10" fill="#f3e8ff" text-anchor="middle" font-family="-apple-system, sans-serif">meeting</text>
-              <rect x="88" y="0" width="74" height="18" rx="9" fill="#1f2937"/>
-              <text x="125" y="13" font-size="10" fill="#94a3b8" text-anchor="middle" font-family="-apple-system, sans-serif">discussion</text>
+          <!-- QA -->
+          <g transform="translate(468, 104)">
+            <rect width="452" height="88" rx="8" fill="#262624" stroke="#3D3B36"/>
+            <rect x="16" y="20" width="44" height="44" rx="10" fill="#6FA3A0"/>
+            <text x="38" y="50" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600" fill="#FFFFFF" text-anchor="middle">Q</text>
+            <text x="76" y="36" font-size="14" font-weight="500" fill="#E8E6E3">Ethan Ryu</text>
+            <text x="76" y="54" font-size="11" fill="#8A8780" letter-spacing="1.5">QA</text>
+            <g transform="translate(352, 22)">
+              <rect width="84" height="22" rx="11" fill="rgba(143,169,107,0.14)" stroke="rgba(143,169,107,0.28)"/>
+              <circle cx="12" cy="11" r="3.5" fill="#8FA96B"/>
+              <text x="22" y="15" font-size="11" fill="#8FA96B">working</text>
             </g>
+            <text x="76" y="76" font-size="11" fill="#B4B1AB">DB schema security audit (TASK-11)</text>
           </g>
-        </g>
-
-        <g transform="translate(620, 0)">
-          <text x="0" y="0" font-family="-apple-system, sans-serif" font-size="13" font-weight="700" fill="#fbbf24" letter-spacing="1.5">REVIEW · 2</text>
-
-          <g transform="translate(0, 16)">
-            <rect width="290" height="96" rx="10" fill="#111827" stroke="#374151"/>
-            <rect x="0" y="0" width="4" height="96" rx="2" fill="#fbbf24"/>
-            <text x="16" y="22" font-family="monospace" font-size="10" fill="#64748b">TASK-10</text>
-            <text x="240" y="22" font-family="monospace" font-size="10" fill="#fbbf24" text-anchor="end">MID</text>
-            <text x="16" y="44" font-family="-apple-system, sans-serif" font-size="13" fill="#e2e8f0" font-weight="600">랜딩페이지 카피</text>
-            <text x="16" y="62" font-family="-apple-system, sans-serif" font-size="11" fill="#fde68a">✓ QA 검토 대기</text>
-            <g transform="translate(16, 74)">
-              <rect width="50" height="18" rx="9" fill="#0c4a6e"/>
-              <text x="25" y="13" font-size="10" fill="#67e8f9" text-anchor="middle" font-family="-apple-system, sans-serif">po</text>
+          <!-- Marketer -->
+          <g transform="translate(936, 104)">
+            <rect width="452" height="88" rx="8" fill="#262624" stroke="#3D3B36"/>
+            <rect x="16" y="20" width="44" height="44" rx="10" fill="#C98B5B"/>
+            <text x="38" y="50" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600" fill="#FFFFFF" text-anchor="middle">M</text>
+            <text x="76" y="36" font-size="14" font-weight="500" fill="#E8E6E3">Noah Seo</text>
+            <text x="76" y="54" font-size="11" fill="#8A8780" letter-spacing="1.5">MARKETER</text>
+            <g transform="translate(352, 22)">
+              <rect width="84" height="22" rx="11" fill="#36352F" stroke="#3D3B36"/>
+              <circle cx="12" cy="11" r="3.5" fill="#8A8780"/>
+              <text x="22" y="15" font-size="11" fill="#B4B1AB">idle</text>
             </g>
-          </g>
-
-          <g transform="translate(0, 124)">
-            <rect width="290" height="96" rx="10" fill="#111827" stroke="#374151"/>
-            <rect x="0" y="0" width="4" height="96" rx="2" fill="#fbbf24"/>
-            <text x="16" y="22" font-family="monospace" font-size="10" fill="#64748b">TASK-11</text>
-            <text x="240" y="22" font-family="monospace" font-size="10" fill="#fb7185" text-anchor="end">HIGH</text>
-            <text x="16" y="44" font-family="-apple-system, sans-serif" font-size="13" fill="#e2e8f0" font-weight="600">DB 스키마 설계</text>
-            <text x="16" y="62" font-family="-apple-system, sans-serif" font-size="11" fill="#fde68a">✓ 보안 감사 중</text>
-            <g transform="translate(16, 74)">
-              <rect width="58" height="18" rx="9" fill="#064e3b"/>
-              <text x="29" y="13" font-size="10" fill="#6ee7b7" text-anchor="middle" font-family="-apple-system, sans-serif">qa</text>
-            </g>
-          </g>
-        </g>
-
-        <g transform="translate(930, 0)">
-          <text x="0" y="0" font-family="-apple-system, sans-serif" font-size="13" font-weight="700" fill="#10b981" letter-spacing="1.5">DONE · 7</text>
-
-          <g transform="translate(0, 16)">
-            <rect width="290" height="84" rx="10" fill="#052e16" stroke="#15803d"/>
-            <rect x="0" y="0" width="4" height="84" rx="2" fill="#10b981"/>
-            <text x="16" y="22" font-family="monospace" font-size="10" fill="#6ee7b7">TASK-5</text>
-            <text x="240" y="22" font-family="monospace" font-size="10" fill="#94a3b8" text-anchor="end">✓ 4d ago</text>
-            <text x="16" y="44" font-family="-apple-system, sans-serif" font-size="13" fill="#d1fae5" font-weight="600">기술 스택 결정</text>
-            <g transform="translate(16, 58)">
-              <rect width="50" height="18" rx="9" fill="#0c4a6e"/>
-              <text x="25" y="13" font-size="10" fill="#67e8f9" text-anchor="middle" font-family="-apple-system, sans-serif">cto</text>
-            </g>
-          </g>
-
-          <g transform="translate(0, 112)">
-            <rect width="290" height="84" rx="10" fill="#052e16" stroke="#15803d"/>
-            <rect x="0" y="0" width="4" height="84" rx="2" fill="#10b981"/>
-            <text x="16" y="22" font-family="monospace" font-size="10" fill="#6ee7b7">TASK-7</text>
-            <text x="240" y="22" font-family="monospace" font-size="10" fill="#94a3b8" text-anchor="end">✓ 2d ago</text>
-            <text x="16" y="44" font-family="-apple-system, sans-serif" font-size="13" fill="#d1fae5" font-weight="600">브랜드 아이덴티티</text>
-            <g transform="translate(16, 58)">
-              <rect width="78" height="18" rx="9" fill="#831843"/>
-              <text x="39" y="13" font-size="10" fill="#fbcfe8" text-anchor="middle" font-family="-apple-system, sans-serif">designer</text>
-            </g>
-          </g>
-
-          <g transform="translate(0, 208)">
-            <rect width="290" height="84" rx="10" fill="#052e16" stroke="#15803d"/>
-            <rect x="0" y="0" width="4" height="84" rx="2" fill="#10b981"/>
-            <text x="16" y="22" font-family="monospace" font-size="10" fill="#6ee7b7">TASK-9</text>
-            <text x="240" y="22" font-family="monospace" font-size="10" fill="#94a3b8" text-anchor="end">✓ today</text>
-            <text x="16" y="44" font-family="-apple-system, sans-serif" font-size="13" fill="#d1fae5" font-weight="600">비전 문서 초안</text>
-            <g transform="translate(16, 58)">
-              <rect width="50" height="18" rx="9" fill="#3730a3"/>
-              <text x="25" y="13" font-size="10" fill="#c7d2fe" text-anchor="middle" font-family="-apple-system, sans-serif">ceo</text>
-            </g>
+            <text x="76" y="76" font-size="11" fill="#8A8780" font-style="italic">No active task</text>
           </g>
         </g>
       </g>
 
-      <g transform="translate(0, 610)">
-        <rect width="1220" height="226" rx="12" fill="#0b1020" stroke="#1e293b"/>
-        <text x="24" y="34" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#f1f5f9">📝 Activity Feed</text>
-        <text x="160" y="34" font-family="-apple-system, sans-serif" font-size="11" fill="#64748b">실시간</text>
+      <!-- Task distribution -->
+      <g transform="translate(40, 552)">
+        <rect width="1420" height="208" rx="10" fill="#2F2E2C" stroke="#3D3B36"/>
+        <text x="24" y="36" font-family="ui-serif, Georgia, serif" font-size="17" font-weight="600" fill="#E8E6E3">Task distribution</text>
 
-        <g font-family="-apple-system, sans-serif" font-size="12" fill="#cbd5e1" transform="translate(24, 60)">
-          <g transform="translate(0, 0)">
-            <circle cx="6" cy="6" r="4" fill="#10b981"/>
-            <text x="20" y="10"><tspan fill="#67e8f9" font-weight="600">CTO</tspan> TASK-12 에 커밋 추가 · "add oauth providers"</text>
-            <text x="1100" y="10" fill="#64748b" text-anchor="end">12:34</text>
+        <g transform="translate(24, 64)" font-family="ui-sans-serif, sans-serif">
+          <g>
+            <rect width="220" height="112" rx="8" fill="#262624" stroke="#3D3B36"/>
+            <text x="18" y="50" font-family="ui-serif, Georgia, serif" font-size="26" font-weight="600" fill="#E8E6E3">5</text>
+            <text x="18" y="80" font-size="12" fill="#8A8780">Backlog</text>
           </g>
-          <g transform="translate(0, 24)">
-            <circle cx="6" cy="6" r="4" fill="#a855f7"/>
-            <text x="20" y="10"><tspan fill="#f0abfc" font-weight="600">Orchestrator</tspan> 회의 시작 · API Rate Limiting 전략 (CTO · PO · QA)</text>
-            <text x="1100" y="10" fill="#64748b" text-anchor="end">12:28</text>
+          <g transform="translate(232, 0)">
+            <rect width="220" height="112" rx="8" fill="#262624" stroke="#3D3B36"/>
+            <text x="18" y="50" font-family="ui-serif, Georgia, serif" font-size="26" font-weight="600" fill="#E8E6E3">4</text>
+            <text x="18" y="80" font-size="12" fill="#8A8780">To do</text>
           </g>
-          <g transform="translate(0, 48)">
-            <circle cx="6" cy="6" r="4" fill="#22d3ee"/>
-            <text x="20" y="10"><tspan fill="#67e8f9" font-weight="600">CEO</tspan> 자문 요청 · "GDPR 전문 변호사" 생성 완료</text>
-            <text x="1100" y="10" fill="#64748b" text-anchor="end">12:20</text>
+          <g transform="translate(464, 0)">
+            <rect width="220" height="112" rx="8" fill="#262624" stroke="#3D3B36"/>
+            <text x="18" y="50" font-family="ui-serif, Georgia, serif" font-size="26" font-weight="600" fill="#D97757">3</text>
+            <text x="18" y="80" font-size="12" fill="#8A8780">In progress</text>
           </g>
-          <g transform="translate(0, 72)">
-            <circle cx="6" cy="6" r="4" fill="#fbbf24"/>
-            <text x="20" y="10"><tspan fill="#fde68a" font-weight="600">Metrics</tspan> Week 1 체크포인트 · DAU 180 (달성률 20%) · 중간 판정 관대</text>
-            <text x="1100" y="10" fill="#64748b" text-anchor="end">12:05</text>
+          <g transform="translate(696, 0)">
+            <rect width="220" height="112" rx="8" fill="#262624" stroke="#3D3B36"/>
+            <text x="18" y="50" font-family="ui-serif, Georgia, serif" font-size="26" font-weight="600" fill="#D4A24A">2</text>
+            <text x="18" y="80" font-size="12" fill="#8A8780">Review</text>
           </g>
-          <g transform="translate(0, 96)">
-            <circle cx="6" cy="6" r="4" fill="#f472b6"/>
-            <text x="20" y="10"><tspan fill="#fbcfe8" font-weight="600">Designer</tspan> TASK-14 디자인 시안 2번째 업로드 · docs/design/hero-v2.md</text>
-            <text x="1100" y="10" fill="#64748b" text-anchor="end">11:48</text>
+          <g transform="translate(928, 0)">
+            <rect width="220" height="112" rx="8" fill="#262624" stroke="#3D3B36"/>
+            <text x="18" y="50" font-family="ui-serif, Georgia, serif" font-size="26" font-weight="600" fill="#D4A24A">1</text>
+            <text x="18" y="80" font-size="12" fill="#8A8780">Testing</text>
           </g>
-          <g transform="translate(0, 120)">
-            <circle cx="6" cy="6" r="4" fill="#10b981"/>
-            <text x="20" y="10"><tspan fill="#6ee7b7" font-weight="600">QA</tspan> TASK-11 DB 스키마 보안 감사 시작 · SQLi · 권한 분리 점검</text>
-            <text x="1100" y="10" fill="#64748b" text-anchor="end">11:32</text>
-          </g>
-          <g transform="translate(0, 144)">
-            <circle cx="6" cy="6" r="4" fill="#fb923c"/>
-            <text x="20" y="10"><tspan fill="#fed7aa" font-weight="600">User</tspan> 메시지 수신 · "랜딩페이지를 먼저 끝내줘"</text>
-            <text x="1100" y="10" fill="#64748b" text-anchor="end">11:15</text>
-          </g>
-          <g transform="translate(0, 168)">
-            <circle cx="6" cy="6" r="4" fill="#a78bfa"/>
-            <text x="20" y="10"><tspan fill="#c7d2fe" font-weight="600">PO</tspan> 스프린트 3 백로그 갱신 · 우선순위 재조정 · 5 tasks</text>
-            <text x="1100" y="10" fill="#64748b" text-anchor="end">11:02</text>
+          <g transform="translate(1160, 0)">
+            <rect width="208" height="112" rx="8" fill="#262624" stroke="#3D3B36"/>
+            <text x="18" y="50" font-family="ui-serif, Georgia, serif" font-size="26" font-weight="600" fill="#8FA96B">19</text>
+            <text x="18" y="80" font-size="12" fill="#8A8780">Done</text>
           </g>
         </g>
       </g>

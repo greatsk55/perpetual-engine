@@ -6,6 +6,22 @@ import type {
   MetricsEvaluation,
 } from './types.js';
 
+/**
+ * `metrics.json` 엔트리가 MetricsManager 가 기대하는 `{ plan, evaluations }` 스키마인지 확인.
+ * 에이전트가 자유 형식(예: `{ status, metrics_achieved }`)으로 기록한 레거시/손상 데이터는
+ * false 를 반환해서 평가 루틴이 크래시하지 않도록 한다.
+ */
+function isTaskMetrics(value: unknown): value is TaskMetrics {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as { plan?: unknown; evaluations?: unknown };
+  if (!v.plan || typeof v.plan !== 'object') return false;
+  const plan = v.plan as { metrics?: unknown; checkpoints?: unknown };
+  if (!Array.isArray(plan.metrics)) return false;
+  if (!Array.isArray(plan.checkpoints)) return false;
+  if (!Array.isArray(v.evaluations)) return false;
+  return true;
+}
+
 export class MetricsManager {
   private store: FileStore<MetricsStore>;
 
@@ -22,10 +38,13 @@ export class MetricsManager {
     }
   }
 
-  /** 특정 태스크의 메트릭스 조회 */
+  /** 특정 태스크의 메트릭스 조회 (스키마 불일치 엔트리는 null 로 취급) */
   async getTaskMetrics(taskId: string): Promise<TaskMetrics | null> {
     const data = await this.getAll();
-    return data.tasks[taskId] ?? null;
+    const entry = data.tasks?.[taskId];
+    if (!entry) return null;
+    if (!isTaskMetrics(entry)) return null;
+    return entry;
   }
 
   /** 태스크에 메트릭스 계획 등록 */
@@ -56,25 +75,32 @@ export class MetricsManager {
     const data = await this.getAll();
     const now = new Date().toISOString();
     const result: string[] = [];
+    const tasks = data.tasks ?? {};
 
-    for (const [taskId, metrics] of Object.entries(data.tasks)) {
+    for (const [taskId, metrics] of Object.entries(tasks)) {
+      // 에이전트가 프레임워크 스키마(plan/evaluations) 밖으로 자유 서술한 경우를 방어.
+      // MetricsManager 는 { plan, evaluations } 형태만 평가 대상으로 본다.
+      if (!isTaskMetrics(metrics)) continue;
+
       const { plan, evaluations } = metrics;
 
       // 이미 최종 평가가 끝났으면 스킵
-      if (evaluations.some(e => e.type === 'final')) continue;
+      if (evaluations.some(e => e?.type === 'final')) continue;
 
       // 측정 종료일이 지났으면 최종 평가 필요
-      if (plan.measurement_end <= now) {
+      if (plan.measurement_end && plan.measurement_end <= now) {
         result.push(taskId);
         continue;
       }
 
       // 체크포인트 도래 확인
       const evaluatedCheckpoints = new Set(
-        evaluations.filter(e => e.type === 'checkpoint').map(e => e.evaluated_at.slice(0, 10)),
+        evaluations
+          .filter(e => e?.type === 'checkpoint' && typeof e.evaluated_at === 'string')
+          .map(e => e.evaluated_at.slice(0, 10)),
       );
       const dueCheckpoints = plan.checkpoints.filter(
-        cp => cp <= now && !evaluatedCheckpoints.has(cp.slice(0, 10)),
+        cp => typeof cp === 'string' && cp <= now && !evaluatedCheckpoints.has(cp.slice(0, 10)),
       );
       if (dueCheckpoints.length > 0) {
         result.push(taskId);

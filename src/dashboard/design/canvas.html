@@ -49,6 +49,7 @@
     .size-mobile { width: 420px; height: 870px; }
     .size-tablet { width: 860px; height: 1200px; }
     .size-desktop { width: 1320px; height: 830px; }
+    .size-slide { width: 1600px; height: 900px; } /* 16:9 피치덱·프레젠테이션 슬라이드 */
 
     /* Toolbar */
     .toolbar {
@@ -97,6 +98,7 @@
       <option value="mobile">모바일만</option>
       <option value="tablet">태블릿만</option>
       <option value="desktop">데스크탑만</option>
+      <option value="slide">슬라이드만</option>
     </select>
     <div class="spacer"></div>
     <span id="count" class="hint">로딩…</span>
@@ -186,6 +188,7 @@
       const frame = document.createElement('div');
       const sizeClass = e.device === 'mobile' ? 'size-mobile'
         : e.device === 'tablet' ? 'size-tablet'
+        : e.device === 'slide' ? 'size-slide'
         : 'size-desktop';
       frame.className = `artboard-frame ${sizeClass}`;
 
@@ -210,7 +213,7 @@
       btn.textContent = '생성 중…';
       try {
         const doc = iframe.contentDocument;
-        const target = doc.querySelector('.device-mobile, .device-tablet, .device-desktop') || doc.body;
+        const target = doc.querySelector('.device-mobile, .device-tablet, .device-desktop, [class*="device-slide"]') || doc.body;
         const dataUrl = await htmlToImage.toPng(target, {
           pixelRatio: 2, cacheBust: true, backgroundColor: '#0f172a',
         });
@@ -230,7 +233,7 @@
         const iframe = art.querySelector('iframe');
         try {
           const doc = iframe.contentDocument;
-          const target = doc.querySelector('.device-mobile, .device-tablet, .device-desktop') || doc.body;
+          const target = doc.querySelector('.device-mobile, .device-tablet, .device-desktop, [class*="device-slide"]') || doc.body;
           const dataUrl = await htmlToImage.toPng(target, {
             pixelRatio: 2, cacheBust: true, backgroundColor: '#0f172a',
           });

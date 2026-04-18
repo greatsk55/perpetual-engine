@@ -1,102 +1,131 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 500" width="1600" height="500">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 560" width="1600" height="560">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0a0b1e"/>
-      <stop offset="50%" stop-color="#1a1040"/>
-      <stop offset="100%" stop-color="#0a0b1e"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#262624"/>
+      <stop offset="100%" stop-color="#1F1E1C"/>
     </linearGradient>
-    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#a78bfa"/>
-      <stop offset="50%" stop-color="#f0abfc"/>
-      <stop offset="100%" stop-color="#67e8f9"/>
-    </linearGradient>
-    <radialGradient id="glow1" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.6"/>
-      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+    <radialGradient id="glowCoral" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#D97757" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#D97757" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="glow2" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#67e8f9" stop-opacity="0.4"/>
-      <stop offset="100%" stop-color="#67e8f9" stop-opacity="0"/>
+    <radialGradient id="glowMoss" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8FA96B" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#8FA96B" stop-opacity="0"/>
     </radialGradient>
-    <pattern id="grid" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
-      <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.06"/>
+    <pattern id="grid" x="0" y="0" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M 64 0 L 0 0 0 64" fill="none" stroke="#3D3B36" stroke-width="0.6" stroke-opacity="0.5"/>
     </pattern>
+    <linearGradient id="coralStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E49477"/>
+      <stop offset="100%" stop-color="#C96847"/>
+    </linearGradient>
   </defs>
 
-  <rect width="1600" height="500" fill="url(#bgGrad)"/>
-  <rect width="1600" height="500" fill="url(#grid)"/>
+  <rect width="1600" height="560" fill="url(#bg)"/>
+  <rect width="1600" height="560" fill="url(#grid)"/>
+  <circle cx="220" cy="180" r="360" fill="url(#glowCoral)"/>
+  <circle cx="1380" cy="400" r="320" fill="url(#glowMoss)"/>
 
-  <circle cx="200" cy="150" r="300" fill="url(#glow1)"/>
-  <circle cx="1400" cy="380" r="280" fill="url(#glow2)"/>
+  <!-- Left: brand + typography -->
+  <g transform="translate(128, 148)">
+    <!-- Brand mark ∞ -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="56" height="56" rx="14" fill="#D97757"/>
+      <text x="28" y="43" font-family="ui-serif, Georgia, 'Times New Roman', serif" font-size="34" font-weight="600" fill="#FFFFFF" text-anchor="middle">∞</text>
+    </g>
 
-  <g transform="translate(120, 170)">
-    <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="96" font-weight="800" fill="url(#titleGrad)" letter-spacing="-2">
-      Perpetual Engine
-    </text>
-    <text x="0" y="60" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="30" font-weight="400" fill="#c7d2fe" letter-spacing="-0.5">
-      AI 에이전트 스타트업 프레임워크
-    </text>
-    <text x="0" y="110" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" font-weight="300" fill="#94a3b8" letter-spacing="0">
-      토큰만 투자하면 AI가 사업을 만든다.
-    </text>
+    <!-- Title -->
+    <text x="0" y="144" font-family="ui-serif, Georgia, 'Times New Roman', serif" font-size="104" font-weight="600" fill="#E8E6E3" letter-spacing="-3">Perpetual Engine</text>
 
-    <g transform="translate(0, 160)">
-      <rect x="0" y="0" width="180" height="48" rx="24" fill="#4f46e5" fill-opacity="0.2" stroke="#818cf8" stroke-width="1"/>
-      <text x="90" y="31" font-family="-apple-system, sans-serif" font-size="16" font-weight="600" fill="#c7d2fe" text-anchor="middle">6 AI Agents</text>
+    <!-- Subtitle KR -->
+    <text x="0" y="196" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="26" font-weight="500" fill="#B4B1AB" letter-spacing="-0.5">AI 에이전트 스타트업 프레임워크</text>
 
-      <rect x="200" y="0" width="180" height="48" rx="24" fill="#a21caf" fill-opacity="0.2" stroke="#e879f9" stroke-width="1"/>
-      <text x="290" y="31" font-family="-apple-system, sans-serif" font-size="16" font-weight="600" fill="#f0abfc" text-anchor="middle">Real-time Dashboard</text>
+    <!-- Tagline -->
+    <text x="0" y="236" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="20" font-weight="400" fill="#8A8780">토큰만 투자하면 AI가 사업을 만든다.</text>
 
-      <rect x="400" y="0" width="180" height="48" rx="24" fill="#0891b2" fill-opacity="0.2" stroke="#22d3ee" stroke-width="1"/>
-      <text x="490" y="31" font-family="-apple-system, sans-serif" font-size="16" font-weight="600" fill="#67e8f9" text-anchor="middle">Metrics-Driven</text>
+    <!-- Pills -->
+    <g transform="translate(0, 280)" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, sans-serif">
+      <g>
+        <rect width="160" height="44" rx="22" fill="rgba(217,119,87,0.14)" stroke="#D97757" stroke-opacity="0.4"/>
+        <circle cx="22" cy="22" r="4" fill="#D97757"/>
+        <text x="38" y="28" font-size="14" font-weight="500" fill="#E49477">6 AI Agents</text>
+      </g>
+      <g transform="translate(176, 0)">
+        <rect width="200" height="44" rx="22" fill="rgba(143,169,107,0.12)" stroke="#8FA96B" stroke-opacity="0.4"/>
+        <circle cx="22" cy="22" r="4" fill="#8FA96B"/>
+        <text x="38" y="28" font-size="14" font-weight="500" fill="#8FA96B">Real-time Dashboard</text>
+      </g>
+      <g transform="translate(392, 0)">
+        <rect width="172" height="44" rx="22" fill="rgba(212,162,74,0.12)" stroke="#D4A24A" stroke-opacity="0.4"/>
+        <circle cx="22" cy="22" r="4" fill="#D4A24A"/>
+        <text x="38" y="28" font-size="14" font-weight="500" fill="#D4A24A">Metrics-Driven</text>
+      </g>
+    </g>
+
+    <!-- CTA hint -->
+    <g transform="translate(0, 344)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+      <rect width="420" height="46" rx="10" fill="#1F1E1C" stroke="#3D3B36"/>
+      <text x="18" y="30" font-size="14" fill="#8A8780">$</text>
+      <text x="36" y="30" font-size="14" fill="#E8E6E3">npm install -g </text>
+      <text x="192" y="30" font-size="14" fill="#E49477">perpetual-engine</text>
     </g>
   </g>
 
-  <g transform="translate(1100, 120)" opacity="0.95">
-    <circle cx="160" cy="160" r="140" fill="none" stroke="#a78bfa" stroke-width="2" stroke-opacity="0.3"/>
-    <circle cx="160" cy="160" r="100" fill="none" stroke="#f0abfc" stroke-width="2" stroke-opacity="0.4"/>
-    <circle cx="160" cy="160" r="60" fill="none" stroke="#67e8f9" stroke-width="2" stroke-opacity="0.6"/>
+  <!-- Right: agent constellation -->
+  <g transform="translate(1100, 120)">
+    <circle cx="180" cy="180" r="168" fill="none" stroke="#3D3B36" stroke-width="1.25"/>
+    <circle cx="180" cy="180" r="112" fill="none" stroke="#3D3B36" stroke-width="1.25"/>
+    <circle cx="180" cy="180" r="56" fill="none" stroke="#3D3B36" stroke-width="1.25"/>
 
-    <g font-family="-apple-system, sans-serif" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">
-      <g transform="translate(160, 20)">
-        <circle r="22" fill="#6366f1"/>
-        <text dy="5">CEO</text>
+    <!-- Radial dashed lines -->
+    <g stroke="#4D4A43" stroke-width="1" stroke-dasharray="3 4" stroke-opacity="0.7">
+      <line x1="180" y1="180" x2="180" y2="28"/>
+      <line x1="180" y1="180" x2="311" y2="105"/>
+      <line x1="180" y1="180" x2="311" y2="255"/>
+      <line x1="180" y1="180" x2="180" y2="332"/>
+      <line x1="180" y1="180" x2="49" y2="255"/>
+      <line x1="180" y1="180" x2="49" y2="105"/>
+    </g>
+
+    <!-- Agent nodes -->
+    <g font-family="ui-sans-serif, -apple-system, sans-serif" font-size="13" font-weight="600" text-anchor="middle">
+      <g transform="translate(180, 28)">
+        <rect x="-30" y="-26" width="60" height="52" rx="12" fill="#2F2E2C" stroke="#D97757" stroke-width="1.2"/>
+        <text y="-4" fill="#D97757" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600">C</text>
+        <text y="16" fill="#B4B1AB" font-size="10" letter-spacing="1">CEO</text>
       </g>
-      <g transform="translate(280, 110)">
-        <circle r="22" fill="#0891b2"/>
-        <text dy="5">CTO</text>
+      <g transform="translate(311, 105)">
+        <rect x="-30" y="-26" width="60" height="52" rx="12" fill="#2F2E2C" stroke="#8FA96B" stroke-width="1.2"/>
+        <text y="-4" fill="#8FA96B" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600">T</text>
+        <text y="16" fill="#B4B1AB" font-size="10" letter-spacing="1">CTO</text>
       </g>
-      <g transform="translate(240, 240)">
-        <circle r="22" fill="#c026d3"/>
-        <text dy="5">PO</text>
+      <g transform="translate(311, 255)">
+        <rect x="-30" y="-26" width="60" height="52" rx="12" fill="#2F2E2C" stroke="#D4A24A" stroke-width="1.2"/>
+        <text y="-4" fill="#D4A24A" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600">P</text>
+        <text y="16" fill="#B4B1AB" font-size="10" letter-spacing="1">PO</text>
       </g>
-      <g transform="translate(80, 240)">
-        <circle r="22" fill="#db2777"/>
-        <text dy="5">DSN</text>
+      <g transform="translate(180, 332)">
+        <rect x="-30" y="-26" width="60" height="52" rx="12" fill="#2F2E2C" stroke="#B4766F" stroke-width="1.2"/>
+        <text y="-4" fill="#B4766F" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600">D</text>
+        <text y="16" fill="#B4B1AB" font-size="10" letter-spacing="1">DSN</text>
       </g>
-      <g transform="translate(40, 110)">
-        <circle r="22" fill="#059669"/>
-        <text dy="5">QA</text>
+      <g transform="translate(49, 255)">
+        <rect x="-30" y="-26" width="60" height="52" rx="12" fill="#2F2E2C" stroke="#6FA3A0" stroke-width="1.2"/>
+        <text y="-4" fill="#6FA3A0" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600">Q</text>
+        <text y="16" fill="#B4B1AB" font-size="10" letter-spacing="1">QA</text>
       </g>
-      <g transform="translate(160, 300)">
-        <circle r="22" fill="#ea580c"/>
-        <text dy="5">MKT</text>
+      <g transform="translate(49, 105)">
+        <rect x="-30" y="-26" width="60" height="52" rx="12" fill="#2F2E2C" stroke="#C98B5B" stroke-width="1.2"/>
+        <text y="-4" fill="#C98B5B" font-family="ui-serif, Georgia, serif" font-size="18" font-weight="600">M</text>
+        <text y="16" fill="#B4B1AB" font-size="10" letter-spacing="1">MKT</text>
       </g>
     </g>
 
-    <g transform="translate(160, 160)">
-      <circle r="38" fill="#0a0b1e" stroke="url(#titleGrad)" stroke-width="2"/>
-      <text font-family="-apple-system, sans-serif" font-size="14" font-weight="700" fill="url(#titleGrad)" text-anchor="middle" dy="5">CORE</text>
-    </g>
-
-    <g stroke="#a78bfa" stroke-width="1" stroke-opacity="0.4" stroke-dasharray="3 3">
-      <line x1="160" y1="160" x2="160" y2="42"/>
-      <line x1="160" y1="160" x2="258" y2="110"/>
-      <line x1="160" y1="160" x2="218" y2="240"/>
-      <line x1="160" y1="160" x2="102" y2="240"/>
-      <line x1="160" y1="160" x2="62" y2="110"/>
-      <line x1="160" y1="160" x2="160" y2="278"/>
+    <!-- Center hub -->
+    <g transform="translate(180, 180)">
+      <circle r="44" fill="#1F1E1C" stroke="url(#coralStroke)" stroke-width="2"/>
+      <text y="12" font-family="ui-serif, Georgia, serif" font-size="36" font-weight="600" fill="#D97757" text-anchor="middle">∞</text>
     </g>
   </g>
 </svg>

@@ -32,8 +32,14 @@ export interface OrchestratorOptions {
   dashboardEnabled?: boolean;
   /** false 면 start() 가 keepAlive 루프에 진입하지 않고 즉시 반환한다 */
   keepAlive?: boolean;
-  /** CEO 에이전트를 start 시점에 자동 기동하지 않는다 (테스트 격리용) */
-  autoStartCeo?: boolean;
+  /**
+   * CEO 에이전트를 start 시점에 자동 기동할지 결정한다.
+   * - `true` (기본) 또는 `'if-empty'`: 칸반/스프린트가 비어 있을 때만 기동 (최초 부트스트랩 용도).
+   *   이미 태스크나 스프린트가 있으면 기동을 건너뛴다 — 재시작 시 중복 계획/덮어쓰기 방지.
+   * - `'always'`: 상태와 무관하게 항상 기동 (재계획 강제).
+   * - `false`: 절대 기동하지 않음 (테스트 격리·수동 제어).
+   */
+  autoStartCeo?: boolean | 'if-empty' | 'always';
   /** WorkflowEngine 의 세션 완료 폴링 간격(ms). 테스트에서 짧게 주입한다 */
   workflowPollInterval?: number;
 }
@@ -56,6 +62,12 @@ export class Orchestrator {
   private watcher: FSWatcher | null = null;
   private messageWatcher: FSWatcher | null = null;
   private processingTasks: Set<string> = new Set();
+  /**
+   * 역할 단위 직렬화 락. taskId → 디스패치 시점의 assignee 역할.
+   * tmux 세션명이 역할 기반(`ip-<role>`)이라 같은 역할의 태스크를 동시에 실행하면
+   * `duplicate session` 에러가 난다. 한 역할당 태스크 1개만 워크플로우에 진입시킨다.
+   */
+  private processingRoles: Map<string, string> = new Map();
   private workflowAborters: Map<string, AbortController> = new Map();
   private processedMessages: Set<string> = new Set();
   private running = false;
@@ -63,7 +75,7 @@ export class Orchestrator {
   private readonly dashboardPort: number;
   private readonly dashboardEnabled: boolean;
   private readonly keepAliveEnabled: boolean;
-  private readonly autoStartCeoEnabled: boolean;
+  private readonly autoStartCeoPolicy: boolean | 'if-empty' | 'always';
   private readonly workflowPollInterval: number | undefined;
 
   constructor(projectRoot: string, options?: OrchestratorOptions) {
@@ -78,7 +90,7 @@ export class Orchestrator {
     this.dashboardPort = options?.dashboardPort ?? 3000;
     this.dashboardEnabled = options?.dashboardEnabled ?? true;
     this.keepAliveEnabled = options?.keepAlive ?? true;
-    this.autoStartCeoEnabled = options?.autoStartCeo ?? true;
+    this.autoStartCeoPolicy = options?.autoStartCeo ?? true;
     this.workflowPollInterval = options?.workflowPollInterval;
   }
 
@@ -142,9 +154,7 @@ export class Orchestrator {
     }
 
     // 6. CEO 에이전트 시작 (초기 스프린트 계획)
-    if (this.autoStartCeoEnabled) {
-      await this.startCEO();
-    }
+    const ceoStarted = await this.maybeStartCeo();
 
     // 7. 파일 워처 시작 (kanban.json 변경 감지)
     this.startWatcher();
@@ -152,7 +162,15 @@ export class Orchestrator {
     // 8. 메시지 워처 시작 (messages/ 디렉토리 감지)
     this.startMessageWatcher();
 
-    // 9. 기존 todo 태스크 초기 스캔 (워처는 변경만 감지하므로 기존 태스크 처리 필요)
+    // 9a. 이전 실행에서 in_progress/testing/review 로 남은 고아 태스크를 먼저 재개
+    //     (크래시·비정상 종료·옛 버그로 방치된 태스크를 저장된 phase 부터 이어 실행)
+    try {
+      await this.resumeInFlightTasks();
+    } catch (err) {
+      logger.error(`고아 태스크 재개 오류: ${(err as Error).message}`);
+    }
+
+    // 9b. 기존 todo 태스크 초기 스캔 (워처는 변경만 감지하므로 기존 태스크 처리 필요)
     try {
       await this.processNewTasks();
     } catch (err) {
@@ -160,7 +178,7 @@ export class Orchestrator {
     }
 
     logger.success('PerpetualEngine가 시작되었습니다!');
-    if (this.autoStartCeoEnabled) {
+    if (ceoStarted) {
       logger.info('CEO 에이전트가 스프린트를 계획하고 있습니다...');
     }
     logger.dim('Ctrl+C로 종료하거나 perpetual-engine stop 명령어를 사용하세요.');
@@ -215,6 +233,36 @@ export class Orchestrator {
     }
   }
 
+  /**
+   * `autoStartCeo` 정책에 따라 CEO 세션을 조건부로 기동한다.
+   * @returns CEO 세션을 실제로 시작했으면 true
+   */
+  private async maybeStartCeo(): Promise<boolean> {
+    const policy = this.autoStartCeoPolicy;
+    if (policy === false) return false;
+
+    if (policy === 'always') {
+      await this.startCEO();
+      return true;
+    }
+
+    // 'if-empty' 또는 true (기본): 칸반·스프린트가 모두 비어 있을 때만 기동
+    const [tasks, sprints] = await Promise.all([
+      this.kanban.getAllTasks(),
+      this.sprintManager.getAllSprints(),
+    ]);
+    if (tasks.length === 0 && sprints.length === 0) {
+      await this.startCEO();
+      return true;
+    }
+
+    logger.info(
+      `기존 태스크 ${tasks.length}개, 스프린트 ${sprints.length}개 감지 — CEO 자동 기동 건너뜀 ` +
+      `(재계획이 필요하면 \`perpetual-engine start --force-ceo\`)`,
+    );
+    return false;
+  }
+
   private async startCEO(): Promise<void> {
     const ceoAgent = this.agentRegistry.get('ceo');
     if (!ceoAgent) {
@@ -262,26 +310,100 @@ export class Orchestrator {
       t => (t.status === 'backlog' || t.status === 'todo') && !this.processingTasks.has(t.id),
     );
 
+    const busyRoles = new Set(this.processingRoles.values());
+
     for (const task of pendingTasks) {
       // 의존성 확인
       const depsCompleted = await this.checkDependencies(task, tasks);
       if (!depsCompleted) continue;
 
-      this.processingTasks.add(task.id);
-      logger.info(`새 태스크 감지: ${task.id} - ${task.title}`);
+      // 역할 단위 직렬화: 같은 역할(assignee)이 이미 워크플로우를 진행 중이면 대기
+      const lockRole = task.assignee;
+      if (lockRole && busyRoles.has(lockRole)) {
+        logger.step(`[${task.id}] ${lockRole} 작업 중 — 대기`);
+        continue;
+      }
 
-      // 비동기로 워크플로우 실행 (병렬)
-      const aborter = new AbortController();
-      this.workflowAborters.set(task.id, aborter);
-      this.workflowEngine.runWorkflow(task, aborter.signal).then(() => {
-        this.processingTasks.delete(task.id);
-        this.workflowAborters.delete(task.id);
-      }).catch(err => {
-        logger.error(`[${task.id}] 워크플로우 실패: ${(err as Error).message}`);
-        this.processingTasks.delete(task.id);
-        this.workflowAborters.delete(task.id);
-      });
+      this.dispatchWorkflow(task, `새 태스크 감지: ${task.id} - ${task.title}`);
+      if (lockRole) busyRoles.add(lockRole);
     }
+  }
+
+  /**
+   * 서버 기동 시 `in_progress`/`testing`/`review` 상태로 남은 고아 태스크를
+   * 저장된 `task.phase` 부터 재개한다. 이전 실행에서 비정상 종료(크래시/Ctrl+C)
+   * 되거나, 옛 버그로 false-success 처리된 태스크가 방치되지 않도록 한다.
+   *
+   * - 실제 tmux 세션이 이미 살아있으면 건드리지 않음 (다른 경로가 처리 중)
+   * - 같은 역할 락은 `processNewTasks` 와 동일하게 `processingRoles` 로 직렬화
+   * - 기동 시에만 1회 호출 — 런타임 디스패치 경로는 그대로 유지
+   */
+  private async resumeInFlightTasks(): Promise<void> {
+    const tasks = await this.kanban.getAllTasks();
+    const resumeStatuses = new Set(['in_progress', 'testing', 'review'] as const);
+    const candidates = tasks.filter(
+      t => resumeStatuses.has(t.status as 'in_progress' | 'testing' | 'review')
+        && !this.processingTasks.has(t.id)
+        && t.assignee,
+    );
+
+    if (candidates.length === 0) return;
+
+    const busyRoles = new Set(this.processingRoles.values());
+
+    for (const task of candidates) {
+      const lockRole = task.assignee!;
+
+      // 실제 tmux 세션이 살아있다면 방치가 아님 — 재개하지 않는다.
+      if (await this.sessionManager.isAgentRunning(lockRole)) {
+        logger.step(`[${task.id}] ${lockRole} 세션 이미 활성 — 재개 건너뜀`);
+        continue;
+      }
+
+      if (busyRoles.has(lockRole)) {
+        logger.step(`[${task.id}] ${lockRole} 작업 중 — 재개 대기`);
+        continue;
+      }
+
+      this.dispatchWorkflow(
+        task,
+        `고아 태스크 재개: ${task.id} - ${task.title} (phase: ${task.phase ?? 'planning'})`,
+      );
+      busyRoles.add(lockRole);
+    }
+  }
+
+  /**
+   * 공통 디스패치 경로. `processingTasks`/`processingRoles`/`workflowAborters` 를
+   * 세팅하고 비동기로 워크플로우를 실행한다. 종료 시 락을 해제하고
+   * 대기 중인 태스크가 있으면 다음 스캔을 트리거한다.
+   */
+  private dispatchWorkflow(task: Task, announceMessage: string): void {
+    const lockRole = task.assignee;
+
+    this.processingTasks.add(task.id);
+    if (lockRole) {
+      this.processingRoles.set(task.id, lockRole);
+    }
+    logger.info(announceMessage);
+
+    const aborter = new AbortController();
+    this.workflowAborters.set(task.id, aborter);
+    const release = (): void => {
+      this.processingTasks.delete(task.id);
+      this.processingRoles.delete(task.id);
+      this.workflowAborters.delete(task.id);
+      // 락이 풀리면 다음 대기 태스크를 즉시 디스패치 (kanban 파일 이벤트가 누락돼도 진행되도록)
+      if (this.running) {
+        this.processNewTasks().catch(err => {
+          logger.error(`태스크 처리 오류: ${(err as Error).message}`);
+        });
+      }
+    };
+    this.workflowEngine.runWorkflow(task, aborter.signal).then(release).catch(err => {
+      logger.error(`[${task.id}] 워크플로우 실패: ${(err as Error).message}`);
+      release();
+    });
   }
 
   private async checkDependencies(task: Task, allTasks: Task[]): Promise<boolean> {
@@ -433,16 +555,25 @@ export class Orchestrator {
     }
 
     this.processingTasks.add(taskId);
+    if (task.assignee) {
+      this.processingRoles.set(taskId, task.assignee);
+    }
 
     const aborter = new AbortController();
     this.workflowAborters.set(taskId, aborter);
-    this.workflowEngine.runWorkflow(task, aborter.signal).then(() => {
+    const release = (): void => {
       this.processingTasks.delete(taskId);
+      this.processingRoles.delete(taskId);
       this.workflowAborters.delete(taskId);
-    }).catch(err => {
+      if (this.running) {
+        this.processNewTasks().catch(err => {
+          logger.error(`태스크 처리 오류: ${(err as Error).message}`);
+        });
+      }
+    };
+    this.workflowEngine.runWorkflow(task, aborter.signal).then(release).catch(err => {
       logger.error(`[${taskId}] 워크플로우 실패: ${(err as Error).message}`);
-      this.processingTasks.delete(taskId);
-      this.workflowAborters.delete(taskId);
+      release();
     });
   }
 
@@ -469,6 +600,7 @@ export class Orchestrator {
 
     // 처리 목록에서 제거
     this.processingTasks.delete(taskId);
+    this.processingRoles.delete(taskId);
 
     // 상태 전환
     const updated = await this.kanban.suspendTask(taskId, reason);

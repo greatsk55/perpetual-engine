@@ -89,8 +89,16 @@ export class SessionManager {
     kanbanSummary?: string;
     projectRoot: string;
     message?: string;
+    /**
+     * 이 세션이 "완료" 로 간주되려면 반드시 생성되어야 할 산출물 파일 경로들.
+     * WorkflowEngine 이 checkOutputs 로 검증하는 경로와 동일해야 한다 — 여기서 명시하지 않으면
+     * 에이전트가 의미 있는 파일명(예: mvp-core-features.md)으로 저장해 산출물 검증이 계속 실패한다.
+     */
+    expectedOutputs?: string[];
+    /** 페이즈 완료 조건 문구 (Phase.completionCriteria) */
+    completionCriteria?: string;
   }): Promise<AgentSession> {
-    const { agent, config, task, contextDocs, kanbanSummary, projectRoot, message } = params;
+    const { agent, config, task, contextDocs, kanbanSummary, projectRoot, message, expectedOutputs, completionCriteria } = params;
     const sessionName = agent.role;
 
     // 이미 실행 중인지 확인
@@ -120,6 +128,16 @@ export class SessionManager {
       taskInstruction = `태스크 ${task.id}: ${task.title}\n\n${task.description}\n\n수용 기준:\n${task.acceptance_criteria.map(c => `- ${c}`).join('\n')}`;
     } else {
       taskInstruction = `docs/vision/ 문서를 읽고 첫 스프린트를 계획하세요. kanban.json에 태스크를 생성하세요.`;
+    }
+
+    // 산출물 경로는 반드시 정확히 이 경로로 생성되어야 워크플로우가 "완료" 로 판정한다.
+    // 에이전트가 의미 있는 이름을 붙여도 경로가 다르면 재시도 루프에 빠진다.
+    if (expectedOutputs && expectedOutputs.length > 0) {
+      const outputsList = expectedOutputs.map(p => `- ${p}`).join('\n');
+      taskInstruction += `\n\n## 필수 산출물 (파일명 정확히)\n워크플로우가 완료로 판정하려면 아래 경로에 파일을 **정확히 이 이름으로** 생성해야 한다. 의미가 잘 드러나는 이름을 별도로 쓰고 싶다면 이 파일 안에서 섹션 제목으로 표현하고, 추가 파일은 옆에 두어도 되지만 **아래 경로의 파일은 반드시 존재해야 한다**:\n${outputsList}`;
+    }
+    if (completionCriteria) {
+      taskInstruction += `\n\n## 완료 조건\n${completionCriteria}`;
     }
 
     const claudeCmdParts = [
