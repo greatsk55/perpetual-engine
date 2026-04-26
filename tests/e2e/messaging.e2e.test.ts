@@ -182,6 +182,46 @@ describe('E2E — 메시징 / 회의 / 자문 전문가', () => {
     ]);
   });
 
+  it('urgent priority 메시지는 normal 메시지보다 먼저 정렬되어 반환된다', async () => {
+    const paths = getProjectPaths(project.root);
+    const queue = new MessageQueue(paths.messages);
+
+    // normal → normal → urgent 순으로 전송했지만, getAll 은 urgent 먼저 반환해야 한다
+    await queue.send({ from: 'system', to: 'ceo', type: 'info', content: '백그라운드 1' });
+    await sleep(2);
+    await queue.send({ from: 'system', to: 'ceo', type: 'info', content: '백그라운드 2' });
+    await sleep(2);
+    await queue.send({
+      from: 'investor',
+      to: 'ceo',
+      type: 'directive',
+      content: '랜딩페이지 먼저 만들어주세요',
+      priority: 'urgent',
+    });
+
+    const all = await queue.getAll();
+    expect(all).toHaveLength(3);
+    expect(all[0].priority).toBe('urgent');
+    expect(all[0].content).toBe('랜딩페이지 먼저 만들어주세요');
+    // urgent 뒤에는 created_at 오름차순으로 normal 들이 따라온다
+    expect(all[1].content).toBe('백그라운드 1');
+    expect(all[2].content).toBe('백그라운드 2');
+  });
+
+  it('priority 미지정 메시지는 normal 로 저장되고 기존 created_at 정렬을 유지한다', async () => {
+    const paths = getProjectPaths(project.root);
+    const queue = new MessageQueue(paths.messages);
+
+    const msg = await queue.send({ from: 'investor', to: 'all', type: 'info', content: 'X' });
+    expect(msg.priority).toBe('normal');
+
+    await sleep(2);
+    await queue.send({ from: 'investor', to: 'all', type: 'info', content: 'Y' });
+
+    const all = await queue.getAll();
+    expect(all.map(m => m.content)).toEqual(['X', 'Y']);
+  });
+
   it('회의 초대 메시지 페이로드는 JSON 으로 영속화되고 파싱 가능해야 한다', async () => {
     // 회의 초대 실패 이슈 (CLAUDE.md 기록 참고) — content 가 객체 문자열이면 parse 가능해야 함
     const paths = getProjectPaths(project.root);

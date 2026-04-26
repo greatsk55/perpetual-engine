@@ -69,6 +69,13 @@ export class Orchestrator {
    */
   private processingRoles: Map<string, string> = new Map();
   private workflowAborters: Map<string, AbortController> = new Map();
+  /**
+   * 디스패치된 워크플로우 promise 추적. 인터럽트 시 락(processingTasks/processingRoles)을
+   * 즉시 풀어 새 메시지 세션이 같은 역할로 진입할 수 있게 하더라도, 원래 워크플로우의
+   * 비동기 후처리(파일시스템 쓰기 등)는 여전히 살아있다. stop() 의 drain 단계에서
+   * 이 promise 들이 모두 settle 될 때까지 기다려야 cleanup 단계와의 race 를 막을 수 있다.
+   */
+  private workflowPromises: Set<Promise<void>> = new Set();
   private processedMessages: Set<string> = new Set();
   private running = false;
 
@@ -222,14 +229,21 @@ export class Orchestrator {
   }
 
   /**
-   * processingTasks 가 비워질 때까지 짧게 대기.
-   * 테스트·재시작 시 비동기 워크플로우가 파일시스템을 만지는 중에
-   * 디렉토리가 삭제되는 race 를 방지한다.
+   * processingTasks 가 비워지고 추적 중인 워크플로우 promise 가 settle 될 때까지 짧게 대기.
+   * 인터럽트 경로(urgent 메시지)는 락을 즉시 풀고 새 세션을 띄우지만 원래 워크플로우의
+   * 비동기 후처리는 살아있다 — promise 까지 기다려야 cleanup 과의 race 를 차단할 수 있다.
    */
   private async drainProcessingTasks(maxWaitMs = 1500): Promise<void> {
     const start = Date.now();
-    while (this.processingTasks.size > 0 && Date.now() - start < maxWaitMs) {
+    while (
+      (this.processingTasks.size > 0 || this.workflowPromises.size > 0) &&
+      Date.now() - start < maxWaitMs
+    ) {
       await new Promise(resolve => setTimeout(resolve, 25));
+    }
+    if (this.workflowPromises.size > 0) {
+      // 시간 초과 후에도 살아남은 promise 는 settle 까지 기다려준다 (allSettled 는 throw 하지 않음).
+      await Promise.allSettled(Array.from(this.workflowPromises));
     }
   }
 
@@ -400,10 +414,14 @@ export class Orchestrator {
         });
       }
     };
-    this.workflowEngine.runWorkflow(task, aborter.signal).then(release).catch(err => {
-      logger.error(`[${task.id}] 워크플로우 실패: ${(err as Error).message}`);
-      release();
-    });
+    const promise = this.workflowEngine.runWorkflow(task, aborter.signal)
+      .then(release)
+      .catch(err => {
+        logger.error(`[${task.id}] 워크플로우 실패: ${(err as Error).message}`);
+        release();
+      });
+    this.workflowPromises.add(promise);
+    promise.finally(() => this.workflowPromises.delete(promise));
   }
 
   private async checkDependencies(task: Task, allTasks: Task[]): Promise<boolean> {
@@ -436,6 +454,9 @@ export class Orchestrator {
   }
 
   private async processNewMessages(): Promise<void> {
+    // MessageQueue.getAll() 은 priority(urgent 먼저) → created_at 순으로 정렬해 반환한다.
+    // 따라서 unread 를 그대로 순회하면 사용자(investor) 가 보낸 urgent 메시지가
+    // 백그라운드 자동화 메시지보다 항상 먼저 디스패치된다.
     const messages = await this.messageQueue.getAll();
     const unread = messages.filter(m => !m.read && !this.processedMessages.has(m.id));
 
@@ -449,7 +470,7 @@ export class Orchestrator {
         continue;
       }
 
-      // 회의 ���대 메시지 처리 (다중 참여자)
+      // 회의 초대 메시지 처리 (다중 참여자)
       if (msg.type === 'meeting_invite') {
         await this.handleMeetingInvite(msg);
         continue;
@@ -463,7 +484,18 @@ export class Orchestrator {
         continue;
       }
 
-      logger.info(`메시지 전달: "${msg.content}" → ${targetRole}`);
+      // urgent directive/request 는 진행 중인 동일 역할 워크플로우를 인터럽트해서
+      // 즉시 처리한다. 인터럽트된 태스크는 phase 를 보존한 채 todo 로 복구되어
+      // 메시지 세션 종료 후 칸반 워처가 픽업하면 저장된 phase 부터 재개된다.
+      if (
+        msg.priority === 'urgent' &&
+        (msg.type === 'directive' || msg.type === 'request')
+      ) {
+        await this.interruptRoleForUrgentMessage(targetRole, msg);
+      }
+
+      const tag = msg.priority === 'urgent' ? ' [urgent]' : '';
+      logger.info(`메시지 전달${tag}: "${msg.content}" → ${targetRole}`);
 
       const allTasks = await this.kanban.getAllTasks();
       const builder = new PromptBuilder();
@@ -482,6 +514,55 @@ export class Orchestrator {
         message: msg.content,
       });
     }
+  }
+
+  /**
+   * urgent 사용자 메시지 처리 직전에 호출. 같은 역할로 진행 중인 워크플로우가
+   * 있으면 abort 하고 락을 즉시 풀어준다. 태스크 자체는 phase 를 유지한 채
+   * `todo` 로 되돌려, 메시지 세션이 끝나면 다음 칸반 이벤트에서 자연스럽게
+   * 재픽업되어 저장된 phase 부터 이어 실행된다.
+   */
+  private async interruptRoleForUrgentMessage(role: string, msg: Message): Promise<void> {
+    const activeTaskId = this.findActiveTaskForRole(role);
+    if (!activeTaskId) return;
+
+    logger.warn(
+      `[urgent] ${role} 진행 중 태스크 ${activeTaskId} 인터럽트 — ` +
+      `사용자 메시지 우선 처리 (msg id=${msg.id})`,
+    );
+
+    // 1) 진행 중인 워크플로우에 중단 신호 → executePhase 폴링이 다음 tick 에 깨어나 종료된다
+    this.workflowAborters.get(activeTaskId)?.abort();
+
+    // 2) 워크플로우의 dispatchWorkflow.release() 콜백이 락을 정리할 때까지 짧게 대기.
+    //    이렇게 해야 후속 kanban.moveTask('todo') 가 워크플로우의 마지막 파일시스템
+    //    동작과 race 하지 않는다 (인터럽트 후 cleanup ENOENT 의 주된 원인).
+    const drainStart = Date.now();
+    while (this.workflowAborters.has(activeTaskId) && Date.now() - drainStart < 500) {
+      await new Promise(resolve => setTimeout(resolve, 25));
+    }
+
+    // 3) 시간 내 정리되지 않으면 강제로 락 해제 — 메시지 세션이 같은 역할의 tmux 세션을
+    //    시작해야 하므로 무한정 기다리지 않는다.
+    this.workflowAborters.delete(activeTaskId);
+    this.processingTasks.delete(activeTaskId);
+    this.processingRoles.delete(activeTaskId);
+
+    // 4) task.phase 는 그대로 두고 status 만 todo 로 복구해 재픽업 가능하게 만든다.
+    //    WorkflowEngine 은 abort 시 final 상태 전환을 하지 않으므로 외부가 책임진다.
+    try {
+      await this.kanban.moveTask(activeTaskId, 'todo');
+    } catch (err) {
+      logger.error(`인터럽트 중 태스크 상태 복구 실패: ${(err as Error).message}`);
+    }
+  }
+
+  /** processingRoles 를 역으로 훑어 해당 역할의 활성 태스크 id 를 찾는다. */
+  private findActiveTaskForRole(role: string): string | undefined {
+    for (const [taskId, lockRole] of this.processingRoles) {
+      if (lockRole === role) return taskId;
+    }
+    return undefined;
   }
 
   /**
@@ -571,10 +652,14 @@ export class Orchestrator {
         });
       }
     };
-    this.workflowEngine.runWorkflow(task, aborter.signal).then(release).catch(err => {
-      logger.error(`[${taskId}] 워크플로우 실패: ${(err as Error).message}`);
-      release();
-    });
+    const promise = this.workflowEngine.runWorkflow(task, aborter.signal)
+      .then(release)
+      .catch(err => {
+        logger.error(`[${taskId}] 워크플로우 실패: ${(err as Error).message}`);
+        release();
+      });
+    this.workflowPromises.add(promise);
+    promise.finally(() => this.workflowPromises.delete(promise));
   }
 
   /**

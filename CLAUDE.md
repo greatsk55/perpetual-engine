@@ -44,7 +44,9 @@ perpetual-engine stop                  # 모든 에이전트 종료
 perpetual-engine team                  # 팀 목록
 perpetual-engine status                # 상태 요약
 perpetual-engine board                 # 터미널 칸반보드
-perpetual-engine message <msg>         # 팀에게 메시지
+perpetual-engine message <msg>                  # 팀에게 메시지 (기본 urgent — 진행 중 워크플로우 인터럽트)
+perpetual-engine message <msg> --to <role>      # 특정 역할에게 보내기 (기본 to: all → ceo)
+perpetual-engine message <msg> --normal         # 우선순위 없이 일반 큐로 보내기
 perpetual-engine task run <id>         # 태스크 강제 실행 (의존성/상태 무시)
 perpetual-engine task suspend <id>     # 태스크 일시 중단
 perpetual-engine task resume <id>      # 중단된 태스크 재개
@@ -61,6 +63,7 @@ perpetual-engine task list [-s status] # 태스크 목록 (상태 필터 가능)
 - **한 역할당 동시 세션 1개**: tmux 세션명이 역할 단위(`ip-<role>`)라 같은 역할로 세션을 동시에 2개 이상 띄울 수 없다. 새 태스크 디스패치 경로를 추가할 때는 `Orchestrator.processingRoles` 락을 반드시 거치고, 세션명을 `role` 이 아닌 다른 키로 쓸 거면 SessionManager 의 activeSessions 키 전체를 함께 바꿔야 한다.
 - **컴포넌트 단위 개발 + 5종 테스트 강제**: development 페이즈는 `development-plan` → `development-component`(컴포넌트마다 반복) → `development-integrate` 3단으로 쪼갠다. 한 컴포넌트는 한 세션에서 5–15분 안에 끝나야 하고, 모든 컴포넌트는 unit/UI/snapshot/integration/E2E **5종 테스트를 전부** 작성해야 완료된다. 테스트 도구는 CTO 가 `tech-stack.md` 의 `test_runners` 에서 자유 선택(자동 강제는 도구가 아니라 5종 종류).
 - **페이즈별 타임아웃**: `Phase.timeoutMs` 로 페이즈마다 따로 지정. 미설정 시 `DEFAULT_PHASE_TIMEOUT_MS`(10분). 새 페이즈 추가 시 반드시 명시.
+- **사용자 메시지는 우선순위 + 인터럽트**: `Message.priority='urgent'` 인 `directive`/`request` 는 큐에서 먼저 디스패치되고, 같은 역할의 진행 중 워크플로우를 `workflowAborters` 로 abort 한 뒤 task 를 `todo` 로 복구해 메시지 처리 후 자동 재개되게 한다. CLI `perpetual-engine message` 가 자동으로 urgent 부여. 새 메시지 type 을 추가하면 인터럽트 대상인지 명시적으로 결정해야 한다.
 
 ## 에이전트 스킬 시스템
 각 에이전트는 역할에 맞는 전용 스킬(Claude Code slash command)을 보유합니다:
@@ -154,6 +157,7 @@ CTO/Dev 컨텍스트 (`src/core/context/context-manager.ts`) 는 development 페
 - [기동 시 in_progress 고아 재개](docs/troubleshooting/startup-resume-in-flight-tasks.md) - `processNewTasks` 는 `backlog`/`todo` 만 픽업하므로 비정상 종료 후 남은 `in_progress`/`testing`/`review` 태스크가 방치됨. `Orchestrator.resumeInFlightTasks()` 를 신설해 `start()` 1회 호출. `task.phase` 부터 재개, `isAgentRunning` 으로 실제 세션 중복 체크. 공통 디스패치는 `dispatchWorkflow()` helper 로 통합. **규칙: 새 `TaskStatus`/phase 를 추가하면 `resumeStatuses` 셋을 같이 갱신. 런타임 디스패치(`processNewTasks`)와 기동 재개(`resumeInFlightTasks`) 경계는 섞지 말 것.**
 - [페이즈 산출물 파일명 불일치 → 재시도 루프](docs/troubleshooting/planning-output-filename-mismatch.md) - 에이전트가 의미 기반 파일명(`mvp-core-features.md`)으로 기획 문서를 저장하는데 워크플로우는 `feature-<slug>.md` 를 기대 → 실패 재시도. `startAgent` 에 `expectedOutputs`/`completionCriteria` 를 전달해 태스크 지시에 필수 산출물 경로를 명시. **규칙: 페이즈 추가 시 기대 산출물 경로를 반드시 지시에 주입. 시스템 프롬프트는 역할 불변, 경로/파일명은 태스크별 지시.**
 - [development 페이즈 컴포넌트 단위 분할 + 5종 테스트 강제](docs/troubleshooting/development-component-split.md) - CTO development 가 600초 단일 타임아웃에 자주 걸리고, 한 세션에 너무 많은 컴포넌트를 우겨넣어 막힘. `development` → `development-plan` / `development-component`(컴포넌트마다 인스턴스) / `development-integrate` 로 분할. `Phase.timeoutMs` 도입(페이즈별 타임아웃). `components.json` 매니페스트 SSOT 신설(`isComponentManifest` 가드). 컴포넌트마다 unit/UI/snapshot/integration/E2E 5종 테스트 산출 강제. PromptBuilder 가 `phaseName`+`componentSpec` 받아 페이즈별 룰 주입. 옛 `development` phase 는 `resolvePhaseAlias` 로 자동 마이그레이션. **규칙: 새 페이즈 추가 시 (1) `WorkflowPhase` 타입 갱신, (2) `phases.ts` 빌더에 위치+`timeoutMs` 명시, (3) 폐기되는 옛 페이즈명은 `resolvePhaseAlias` 에 매핑 추가, (4) `resumeInFlightTasks` 의 `resumeStatuses` 일치 확인.**
+- [사용자 메시지 우선순위 + 진행 중 워크플로우 인터럽트](docs/troubleshooting/user-message-priority-interrupt.md) - `perpetual-engine message` 가 백그라운드 큐 뒤로 밀리는 문제. `Message.priority` 필드 도입, `MessageQueue.getAll()` 정렬을 (priority urgent 먼저 → created_at) 2단으로 변경. CLI 가 사용자 directive 를 자동 `urgent` 로 송신. Orchestrator 가 urgent directive/request 도착 시 동일 역할의 `processingRoles` 락을 추적해 `workflowAborters.abort()` 로 인터럽트, task 는 `phase` 보존 + `todo` 로 복구해 메시지 처리 후 자동 재개. **규칙: (1) 새 메시지 type 추가 시 인터럽트 대상 여부 명시, (2) 새 dispatch 경로는 반드시 `processingRoles` 락에 등록, (3) abort 후 태스크 최종 상태 전환은 abort 호출자가 책임, (4) `MessageQueue.getAll()` 외부에서 별도 정렬 금지.**
 
 ## 테스트
 - 단위 테스트: `npm run test:unit` — `tests/unit/`

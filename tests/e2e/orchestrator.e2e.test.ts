@@ -488,6 +488,113 @@ describe('E2E — Orchestrator 골든 패스', () => {
     expect(poCreates.length).toBe(1);
   });
 
+  it('urgent directive 메시지가 들어오면 진행 중인 동일 역할 워크플로우를 인터럽트하고 메시지를 우선 처리한다', async () => {
+    orchestrator = makeOrchestrator();
+    await orchestrator.start();
+
+    const paths = getProjectPaths(project.root);
+    const kanban = new KanbanManager(paths.kanban);
+    const queue = new MessageQueue(paths.messages);
+
+    // 1) po 에게 태스크를 할당하면 워처가 픽업해 po 세션이 뜬다
+    const task = await kanban.addTask({
+      title: 'po 진행 중 태스크',
+      description: '오래 걸리는 작업',
+      type: 'feature',
+      priority: 'medium',
+      assignee: 'po',
+      created_by: 'ceo',
+    });
+
+    await waitFor(
+      () => mockTmux.findSession('po') !== undefined,
+      { timeoutMs: 3000, label: 'po 세션 생성' },
+    );
+
+    // task 가 in_progress 락에 들어갔는지 확인 (workflowEngine 이 moveTask 를 호출)
+    await waitFor(
+      async () => {
+        const fresh = await kanban.getTask(task.id);
+        return fresh?.status === 'in_progress';
+      },
+      { timeoutMs: 2000, label: 'task in_progress 전환' },
+    );
+
+    // 2) urgent directive 를 po 에게 보냄 — 인터럽트되어야 한다
+    const beforeKills = mockTmux.killCalls.filter(n => n === 'po').length;
+    await queue.send({
+      from: 'investor',
+      to: 'po',
+      type: 'directive',
+      content: '긴급: 가격표를 다시 검토해주세요',
+      priority: 'urgent',
+    });
+
+    // 3) 인터럽트 결과: task 가 todo 로 복구되어야 함
+    await waitFor(
+      async () => {
+        const fresh = await kanban.getTask(task.id);
+        return fresh?.status === 'todo';
+      },
+      { timeoutMs: 3000, label: 'task todo 복구 (인터럽트)' },
+    );
+
+    // 4) 메시지 content 를 담은 새 po 세션이 생성됨
+    await waitFor(
+      () => {
+        const calls = mockTmux.createCalls.filter(c => c.rawName === 'po');
+        return calls.some(c => resolveCommand(c).includes('가격표를 다시 검토'));
+      },
+      { timeoutMs: 3000, label: '메시지 컨텍스트로 po 세션 재시작' },
+    );
+
+    // 인터럽트 + 메시지 진입 과정에서 po 세션이 적어도 한 번은 kill 되어야 함
+    const afterKills = mockTmux.killCalls.filter(n => n === 'po').length;
+    expect(afterKills).toBeGreaterThan(beforeKills);
+  });
+
+  it('priority=normal 인 directive 는 진행 중 워크플로우를 인터럽트하지 않는다 (task 가 todo 로 강등되지 않음)', async () => {
+    orchestrator = makeOrchestrator();
+    await orchestrator.start();
+
+    const paths = getProjectPaths(project.root);
+    const kanban = new KanbanManager(paths.kanban);
+    const queue = new MessageQueue(paths.messages);
+
+    // 첫 phase(planning) 의 leadAgent 가 'po' 이므로 assignee=po 로 두면 락/세션이 모두 po 에 모인다
+    const task = await kanban.addTask({
+      title: 'po 작업',
+      description: '',
+      type: 'feature',
+      priority: 'medium',
+      assignee: 'po',
+      created_by: 'ceo',
+    });
+
+    await waitFor(
+      () => mockTmux.findSession('po') !== undefined,
+      { timeoutMs: 3000, label: 'po 세션 생성' },
+    );
+    await waitFor(
+      async () => (await kanban.getTask(task.id))?.status === 'in_progress',
+      { timeoutMs: 2000, label: 'task in_progress 전환' },
+    );
+
+    // priority 미지정(=normal) directive — 인터럽트 경로(moveTask→todo)를 타지 않아야 한다
+    await queue.send({
+      from: 'system',
+      to: 'po',
+      type: 'directive',
+      content: '백그라운드 알림',
+    });
+
+    // 인터럽트 로직이 동작했다면 task 가 todo 로 강등되었을 것.
+    // normal 이므로 todo 로 강등되어선 안 됨 (워크플로우는 별도 경로로 진행/메시지는 별도 세션으로)
+    await sleep(300);
+    const after = await kanban.getTask(task.id);
+    expect(after?.status).not.toBe('todo');
+  });
+
   it('stop() 은 모든 활성 세션을 종료하고 활성 자문가도 제거한다', async () => {
     orchestrator = makeOrchestrator();
     await orchestrator.start();
