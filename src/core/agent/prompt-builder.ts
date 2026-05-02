@@ -3,6 +3,34 @@ import type { Task, WorkflowPhase } from '../state/types.js';
 import type { ProjectConfig } from '../project/config.js';
 import type { ComponentSpec } from '../workflow/components.js';
 
+/**
+ * 컴포넌트 페이즈 프롬프트에 들어갈 "이번 세션 대상 컴포넌트" 블록을 만든다.
+ * unit/ui 는 항상 출력하고, 선택 테스트(snapshot/integration/e2e)는 declared 된 것만 출력한다.
+ */
+function buildComponentContext(component: ComponentSpec): string {
+  const lines: string[] = [];
+  lines.push(`\n\n### 이번 세션 대상 컴포넌트`);
+  lines.push(`- 이름: **${component.name}** (slug: \`${component.slug}\`)`);
+  lines.push(`- 책임: ${component.description}`);
+  lines.push(`- 구현 파일: ${component.implementation_paths.map(p => `\`${p}\``).join(', ')}`);
+  lines.push(`- 테스트 경로 (정확히 이 경로에 작성):`);
+  lines.push(`  - unit (필수):        \`${component.test_paths.unit}\``);
+  lines.push(`  - ui (필수):          \`${component.test_paths.ui}\``);
+  if (component.test_paths.snapshot) {
+    lines.push(`  - snapshot (선택):    \`${component.test_paths.snapshot}\``);
+  }
+  if (component.test_paths.integration) {
+    lines.push(`  - integration (선택): \`${component.test_paths.integration}\``);
+  }
+  if (component.test_paths.e2e) {
+    lines.push(`  - e2e (선택):         \`${component.test_paths.e2e}\``);
+  }
+  if (component.dependencies && component.dependencies.length > 0) {
+    lines.push(`- 의존: ${component.dependencies.map(d => `\`${d}\``).join(', ')}`);
+  }
+  return lines.join('\n');
+}
+
 export class PromptBuilder {
   buildSystemPrompt(params: {
     agent: AgentConfig;
@@ -271,11 +299,14 @@ ${contextDocs.map(d => `- ${d}`).join('\n')}`);
 ### 산출물 (정확한 경로 + 정확한 형식)
 1. \`docs/development/feature-<task-slug>/tech-stack.md\` — 사람용 기술 스택 설명
    - 선택한 framework 와 그 이유
-   - 5종 테스트 도구(unit/UI/snapshot/integration/E2E) 각각의 선택 근거
+   - **unit + ui 필수** 테스트 도구 선택 근거 (snapshot/integration/e2e 는 작성 시에만 명시)
    - 빌드/패키지 매니저/타깃 런타임
 2. \`docs/development/feature-<task-slug>/components.json\` — 워크플로우 엔진이 파싱하는 매니페스트 (\`src/core/workflow/components.ts\` 의 \`ComponentManifest\` 스키마 정확히 준수)
 
-### components.json 형식
+### components.json 형식 (필수: unit + ui, 선택: snapshot/integration/e2e)
+
+\`test_runners\` 의 각 항목은 **객체 \`{ "tool": ..., "command": ... }\` 형태로 적는다.** 워크플로우 엔진이 \`command\` 를 Bash 로 실제 실행해서 종료코드 0 일 때만 페이즈를 통과시킨다 — \`command\` 가 없으면 자동 검증을 건너뛴다.
+
 \`\`\`json
 {
   "version": 1,
@@ -283,11 +314,8 @@ ${contextDocs.map(d => `- ${d}`).join('\n')}`);
   "tech_stack": {
     "framework": "예: react+vite",
     "test_runners": {
-      "unit": "예: vitest",
-      "ui": "예: @testing-library/react",
-      "snapshot": "예: vitest snapshot",
-      "integration": "예: vitest + msw",
-      "e2e": "예: playwright"
+      "unit": { "tool": "vitest", "command": "npx vitest run --reporter=basic" },
+      "ui":   { "tool": "@testing-library/react", "command": "npx vitest run --reporter=basic --testNamePattern='ui'" }
     },
     "notes": "선택사항"
   },
@@ -299,10 +327,7 @@ ${contextDocs.map(d => `- ${d}`).join('\n')}`);
       "implementation_paths": ["workspace/src/components/LoginButton.tsx"],
       "test_paths": {
         "unit": "workspace/src/components/__tests__/LoginButton.test.ts",
-        "ui": "workspace/src/components/__tests__/LoginButton.ui.test.tsx",
-        "snapshot": "workspace/src/components/__tests__/__snapshots__/LoginButton.snap",
-        "integration": "workspace/tests/integration/login-button.integration.test.ts",
-        "e2e": "workspace/tests/e2e/login-button.e2e.spec.ts"
+        "ui":   "workspace/src/components/__tests__/LoginButton.ui.test.tsx"
       },
       "dependencies": []
     }
@@ -314,7 +339,8 @@ ${contextDocs.map(d => `- ${d}`).join('\n')}`);
 - **최소 단위로 쪼갠다**: 한 컴포넌트는 5–15분 안에 구현 가능한 크기
 - **slug 는 a-z0-9-** 만 사용. 중복 금지.
 - **의존성 순서로 정렬**: 의존하는 컴포넌트가 배열에서 더 앞에 와야 한다
-- **5종 테스트 경로를 컴포넌트마다 모두 지정** — 누락하면 매니페스트는 거부된다
+- **unit + ui 두 종 테스트 경로는 반드시 명시** — 누락하면 매니페스트는 거부된다
+- snapshot/integration/e2e 테스트가 필요하면 같은 객체에 키를 추가하고, \`tech_stack.test_runners\` 에도 같은 키로 도구를 정의한다 (\`command\` 포함 권장)
 - 테스트 도구는 tech_stack.test_runners 와 일치해야 한다
 
 이 페이즈를 마치면 워크플로우 엔진이 매니페스트를 읽어 development-component 페이즈를 컴포넌트 수만큼 펼친다.`;
@@ -322,58 +348,58 @@ ${contextDocs.map(d => `- ${d}`).join('\n')}`);
 
     if (phase === 'development-component') {
       const ctx = component
-        ? `\n\n### 이번 세션 대상 컴포넌트
-- 이름: **${component.name}** (slug: \`${component.slug}\`)
-- 책임: ${component.description}
-- 구현 파일: ${component.implementation_paths.map(p => `\`${p}\``).join(', ')}
-- 5종 테스트 경로 (정확히 이 경로에 작성):
-  - unit:        \`${component.test_paths.unit}\`
-  - ui:          \`${component.test_paths.ui}\`
-  - snapshot:    \`${component.test_paths.snapshot}\`
-  - integration: \`${component.test_paths.integration}\`
-  - e2e:         \`${component.test_paths.e2e}\`${component.dependencies && component.dependencies.length > 0 ? `\n- 의존: ${component.dependencies.map(d => `\`${d}\``).join(', ')}` : ''}`
+        ? buildComponentContext(component)
         : '';
 
       return `\n\n## development-component 페이즈 규칙 (필수)
 
 **한 번에 단 하나의 컴포넌트만 구현한다.** 다른 컴포넌트는 절대 건드리지 않는다.${ctx}
 
-### 5종 테스트 작성 원칙 (절대 규칙)
-모든 컴포넌트는 다음 5종 테스트를 **전부** 작성하고 통과시켜야 완료로 인정된다. 도구는 \`docs/development/feature-<task-slug>/tech-stack.md\` 의 \`test_runners\` 를 그대로 쓴다.
+### 작성해야 하는 테스트 (unit + ui 필수, 나머지 선택)
+같은 세션에서 **구현 코드와 테스트 코드를 모두 작성**하고, **Bash 로 직접 테스트 명령을 실행해서 통과시킨 뒤** 세션을 종료한다. 도구는 \`docs/development/feature-<task-slug>/tech-stack.md\` 의 \`test_runners\` 를 그대로 쓴다.
 
-| 종류 | 검증 대상 |
-|------|----------|
-| unit | 순수 함수·로직·상태 변환 |
-| ui | 렌더링, 사용자 상호작용 (예: RTL/Vue Test Utils 등) |
-| snapshot | 시각적 회귀 (DOM/컴포넌트 트리 스냅샷) |
-| integration | 다른 컴포넌트/모듈/외부(mock) 와의 결합 |
-| e2e | 실제 브라우저/디바이스에서 사용자 플로우 (예: Playwright/Cypress) |
+| 종류 | 필수 여부 | 검증 대상 |
+|------|----------|----------|
+| unit | **필수** | 순수 함수·로직·상태 변환 |
+| ui | **필수** | 렌더링, 사용자 상호작용 (예: RTL/Vue Test Utils 등) |
+| snapshot | 선택 | 시각적 회귀 (DOM/컴포넌트 트리 스냅샷) — components.json 에 키가 있을 때만 |
+| integration | 선택 | 다른 컴포넌트/모듈/외부(mock) 와의 결합 — components.json 에 키가 있을 때만 |
+| e2e | 선택 | 실제 브라우저/디바이스에서 사용자 플로우 — components.json 에 키가 있을 때만 |
 
-### TDD 작업 순서 (권장)
-1. 5종 테스트 파일을 먼저 빈 셸로 만들고, 각 시나리오를 적는다 (failing tests).
-2. 구현 파일을 만들어 unit → ui → integration → snapshot → e2e 순서로 통과시킨다.
-3. 모든 테스트가 통과하면 짧은 커밋 메시지와 함께 종료한다.
+### TDD + 자체 검증 루프 (이 페이즈의 핵심)
+1. unit · ui 테스트 파일을 먼저 작성한다 — 시나리오·기대값을 적은 failing tests.
+2. 구현 파일(\`implementation_paths\`)을 만들어서 테스트가 컴파일/로드되도록 한다.
+3. **Bash 로 \`tech_stack.test_runners.unit.command\` 와 \`ui.command\` 를 직접 실행한다.**
+4. 실패 출력을 읽고 코드를 수정한 뒤 다시 실행한다 — **모든 필수 테스트가 통과할 때까지 반복**한다.
+5. (선택) snapshot/integration/e2e 가 매니페스트에 선언되어 있으면 같은 방식으로 통과시킨다.
+6. 모든 테스트 통과를 확인한 뒤 세션을 종료한다.
+
+### 자동 검증 (워크플로우 엔진이 수행)
+- 산출물 파일 존재 확인 (구현 + 작성하기로 한 테스트 파일들).
+- \`tech_stack.test_runners\` 에 \`command\` 가 있는 종류는 워크플로우 엔진이 다시 한 번 Bash 로 실행해서 종료코드 0 인지 확인한다.
+- **하나라도 실패하면 동일 페이즈로 자동 재시도된다.** 실패 출력은 \`docs/development/feature-<task-slug>/components/${component?.slug ?? '<slug>'}.test-output.md\` 에 기록되어 다음 세션이 그 파일을 읽고 수정한다.
 
 ### 금지 사항
-- 5종 중 하나라도 누락한 채 페이즈 종료 금지 — 워크플로우 엔진이 산출물 검증 단계에서 실패 처리한다.
+- 테스트가 빨갛게 실패한 채 세션 종료 금지 — 자동 재시도되어 시간만 낭비된다.
+- 필수 테스트(unit · ui)를 누락한 채 페이즈 종료 금지.
 - 매니페스트(components.json) 수정 금지 — 분해는 development-plan 의 책임이다.
 - 다른 컴포넌트 파일 수정 금지 — 의존하는 컴포넌트가 부족하면 \`[미해결]\` 로 기록하고 자기 컴포넌트 범위에서만 처리한다.
 
 ### 시간 관리
-- 이 세션의 타임아웃은 15분이다. 막히면 빠르게 \`[블로커]\` 로 메시지를 남기고 다음 컴포넌트로 넘어갈 수 있게 종료한다.`;
+- 이 세션의 타임아웃은 15분이다. 막히면 빠르게 \`[블로커]\` 로 메시지를 남기고, 부분 진행 상황을 commit 한 뒤 종료한다 — 자동 재시도가 이어진다.`;
     }
 
     if (phase === 'development-integrate') {
       return `\n\n## development-integrate 페이즈 규칙 (필수)
 
-이 페이즈에서는 새 컴포넌트를 만들지 않는다. **모든 컴포넌트를 통합**하고 전체 빌드/통합 테스트를 통과시킨다.
+이 페이즈에서는 새 컴포넌트를 만들지 않는다. **모든 컴포넌트를 통합**하고 전체 빌드/테스트를 통과시킨다.
 
 ### 산출물
 - \`docs/development/feature-<task-slug>.md\` — 통합 결과 요약, 빌드/테스트 결과, 미해결 이슈 목록
 
 ### 작업
 1. tech-stack.md 의 빌드 명령으로 전체 빌드를 실행한다 (실패하면 원인 추적 후 수정).
-2. tech-stack.md 의 \`test_runners.integration\` 도구로 컴포넌트 간 상호작용 테스트를 실행한다.
+2. tech-stack.md 의 \`test_runners\` 에 정의된 모든 명령(특히 unit · ui, 그리고 정의되어 있다면 integration/e2e)을 Bash 로 직접 실행해서 통과시킨다.
 3. 통합 중 발견된 실패는 작은 패치로 해결한다 (큰 재설계는 새 태스크로).`;
     }
 

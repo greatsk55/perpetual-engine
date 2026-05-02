@@ -4,6 +4,7 @@ import {
   type ComponentManifest,
   type ComponentSpec,
   componentExpectedOutputs,
+  componentTestOutputPath,
   manifestPath,
   techStackDocPath,
 } from './components.js';
@@ -109,10 +110,12 @@ function buildStaticPhases(taskSlug: string): Phase[] {
       outputDocPaths: [techStackDocPath(taskSlug), manifestPath(taskSlug)],
       completionCriteria: [
         `정확히 다음 두 파일이 생성되어야 한다:`,
-        `1) ${techStackDocPath(taskSlug)} — 사람용 기술 스택 설명 + 5종 테스트 도구 선택 근거`,
+        `1) ${techStackDocPath(taskSlug)} — 사람용 기술 스택 설명 + 테스트 도구 선택 근거`,
         `2) ${manifestPath(taskSlug)} — 워크플로우 엔진이 파싱하는 컴포넌트 매니페스트(JSON, version=1)`,
         `매니페스트는 src/core/workflow/components.ts 의 ComponentManifest 스키마를 정확히 따라야 한다.`,
-        `각 컴포넌트는 implementation_paths(>=1) 와 5종 test_paths(unit/ui/snapshot/integration/e2e) 를 모두 명시해야 한다.`,
+        `각 컴포넌트는 implementation_paths(>=1) 와 unit + ui 두 종 test_paths 를 반드시 포함해야 한다.`,
+        `snapshot/integration/e2e 테스트는 선택 — 작성하기로 한 종류만 test_paths 에 키를 넣는다.`,
+        `tech_stack.test_runners 의 unit/ui 는 가능하면 { tool, command } 객체로 적어 워크플로우 엔진이 실행해 통과 여부를 검증할 수 있게 한다.`,
         `slug 는 a-z0-9- 만 사용. 컴포넌트는 의존성 순서대로 정렬한다.`,
         `이 페이즈에서는 코드를 구현하지 않는다 — 분해와 계획만 산출한다.`,
       ].join('\n'),
@@ -141,6 +144,8 @@ function buildComponentPhases(taskSlug: string, manifest: ComponentManifest): Ph
         manifestPath(taskSlug),
         designDocPath(taskSlug),
         `docs/design/mockups/${taskSlug}/`,
+        // 직전 시도의 테스트 실행 결과 (있으면 재시도 세션이 실패 원인을 보고 수정)
+        componentTestOutputPath(taskSlug, spec.slug),
         ...(spec.dependencies ?? []).map(dep =>
           // 의존 컴포넌트가 이미 산출한 구현 파일들을 참조용으로 노출
           `docs/development/feature-${taskSlug}/components/${dep}.md`,
@@ -150,14 +155,15 @@ function buildComponentPhases(taskSlug: string, manifest: ComponentManifest): Ph
       completionCriteria: [
         `컴포넌트 "${spec.name}" (slug: ${spec.slug}) 만 구현한다 — 다른 컴포넌트는 건드리지 않는다.`,
         `구현 파일: ${spec.implementation_paths.join(', ')}`,
-        `5종 테스트를 모두 작성하고 통과시킨다 (도구는 tech-stack.md 의 test_runners 사용):`,
+        `반드시 작성해야 하는 테스트 (unit + ui 필수):`,
         `- unit: ${spec.test_paths.unit}`,
         `- ui: ${spec.test_paths.ui}`,
-        `- snapshot: ${spec.test_paths.snapshot}`,
-        `- integration: ${spec.test_paths.integration}`,
-        `- e2e: ${spec.test_paths.e2e}`,
-        `5종 중 하나라도 누락되면 컴포넌트는 미완료다.`,
-      ].join('\n'),
+        spec.test_paths.snapshot ? `- snapshot (선택): ${spec.test_paths.snapshot}` : null,
+        spec.test_paths.integration ? `- integration (선택): ${spec.test_paths.integration}` : null,
+        spec.test_paths.e2e ? `- e2e (선택): ${spec.test_paths.e2e}` : null,
+        `구현 + 테스트 작성 후 같은 세션에서 Bash 로 테스트 명령을 직접 실행하고, 모든 테스트가 통과할 때까지 코드를 수정·재실행한다.`,
+        `테스트가 실패한 채로 세션을 종료하면 워크플로우 엔진이 자동으로 같은 페이즈를 재시도한다.`,
+      ].filter(Boolean).join('\n'),
       nextPhase: isLast ? 'development-integrate' : 'development-component',
       onFailure: 'development-component',
       timeoutMs: 15 * 60 * 1000,

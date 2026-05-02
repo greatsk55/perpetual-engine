@@ -95,7 +95,7 @@ describe('PromptBuilder 페이즈별 룰', () => {
     expect(prompt).toContain('코드를 한 줄도 구현하지 않는다');
   });
 
-  it('development-component 페이즈는 5종 테스트 + 컴포넌트 컨텍스트를 주입한다', () => {
+  it('development-component 페이즈는 unit+ui 필수 + 자체 테스트 실행 룰 + 컴포넌트 컨텍스트를 주입한다', () => {
     const config = projectConfigSchema.parse({});
     const builder = new PromptBuilder();
     const prompt = builder.buildSystemPrompt({
@@ -110,23 +110,51 @@ describe('PromptBuilder 페이즈별 룰', () => {
         test_paths: {
           unit: 'workspace/src/__tests__/LoginButton.test.ts',
           ui: 'workspace/src/__tests__/LoginButton.ui.test.tsx',
-          snapshot: 'workspace/src/__tests__/__snapshots__/LoginButton.snap',
-          integration: 'workspace/tests/integration/login-button.test.ts',
-          e2e: 'workspace/tests/e2e/login-button.spec.ts',
         },
       },
     });
     expect(prompt).toContain('## development-component 페이즈 규칙');
-    // 5종 테스트 키워드가 모두 등장해야 한다
+    expect(prompt).toContain('unit + ui 필수');
     expect(prompt).toContain('| unit |');
     expect(prompt).toContain('| ui |');
-    expect(prompt).toContain('| snapshot |');
-    expect(prompt).toContain('| integration |');
-    expect(prompt).toContain('| e2e |');
+    // 자체 검증 루프 룰
+    expect(prompt).toContain('Bash 로');
+    expect(prompt).toContain('통과할 때까지 반복');
+    // 자동 재시도/리포트 경로 안내
+    expect(prompt).toContain('login-button.test-output.md');
     // 컴포넌트 컨텍스트 주입
     expect(prompt).toContain('LoginButton');
     expect(prompt).toContain('login-button');
+    expect(prompt).toContain('unit (필수)');
+    expect(prompt).toContain('ui (필수)');
+    // 선언되지 않은 선택 테스트는 노출되지 않는다
+    expect(prompt).not.toContain('snapshot (선택)');
+    expect(prompt).not.toContain('e2e (선택)');
+  });
+
+  it('development-component 페이즈는 선언된 선택 테스트만 노출한다', () => {
+    const config = projectConfigSchema.parse({});
+    const builder = new PromptBuilder();
+    const prompt = builder.buildSystemPrompt({
+      agent: baseAgent,
+      config,
+      phaseName: 'development-component',
+      componentSpec: {
+        name: 'LoginButton',
+        slug: 'login-button',
+        description: '로그인 버튼',
+        implementation_paths: ['workspace/src/LoginButton.tsx'],
+        test_paths: {
+          unit: 'workspace/src/__tests__/LoginButton.test.ts',
+          ui: 'workspace/src/__tests__/LoginButton.ui.test.tsx',
+          e2e: 'workspace/tests/e2e/login-button.spec.ts',
+        },
+      },
+    });
+    expect(prompt).toContain('e2e (선택)');
     expect(prompt).toContain('workspace/tests/e2e/login-button.spec.ts');
+    expect(prompt).not.toContain('snapshot (선택)');
+    expect(prompt).not.toContain('integration (선택)');
   });
 
   it('development-integrate 페이즈는 통합 룰을 주입한다', () => {

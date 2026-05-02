@@ -14,11 +14,8 @@ const manifest: ComponentManifest = {
   tech_stack: {
     framework: 'react+vite',
     test_runners: {
-      unit: 'vitest',
-      ui: '@testing-library/react',
-      snapshot: 'vitest snapshot',
-      integration: 'vitest+msw',
-      e2e: 'playwright',
+      unit: { tool: 'vitest', command: 'npx vitest run' },
+      ui: { tool: 'rtl', command: 'npx vitest run --testNamePattern=ui' },
     },
   },
   components: [
@@ -30,9 +27,6 @@ const manifest: ComponentManifest = {
       test_paths: {
         unit: 'workspace/src/__tests__/Button.test.ts',
         ui: 'workspace/src/__tests__/Button.ui.test.tsx',
-        snapshot: 'workspace/src/__tests__/__snapshots__/Button.snap',
-        integration: 'workspace/tests/integration/button.test.ts',
-        e2e: 'workspace/tests/e2e/button.spec.ts',
       },
     },
     {
@@ -43,9 +37,6 @@ const manifest: ComponentManifest = {
       test_paths: {
         unit: 'workspace/src/__tests__/Form.test.ts',
         ui: 'workspace/src/__tests__/Form.ui.test.tsx',
-        snapshot: 'workspace/src/__tests__/__snapshots__/Form.snap',
-        integration: 'workspace/tests/integration/form.test.ts',
-        e2e: 'workspace/tests/e2e/form.spec.ts',
       },
       dependencies: ['button'],
     },
@@ -117,13 +108,23 @@ describe('buildPhases (매니페스트 있음)', () => {
     expect(components[1].nextPhase).toBe('development-integrate');
   });
 
-  it('development-component 페이즈의 outputDocPaths 는 구현 + 5종 테스트 (총 6개)', () => {
+  it('development-component 페이즈의 outputDocPaths 는 구현 + 작성된 테스트만 (unit+ui 만 있는 경우 3개)', () => {
     const buttonPhase = phases.find(
       p => p.name === 'development-component' && p.instanceKey === 'button',
     )!;
-    expect(buttonPhase.outputDocPaths).toHaveLength(6);
+    expect(buttonPhase.outputDocPaths).toHaveLength(3);
     expect(buttonPhase.outputDocPaths).toContain('workspace/src/Button.tsx');
-    expect(buttonPhase.outputDocPaths).toContain('workspace/tests/e2e/button.spec.ts');
+    expect(buttonPhase.outputDocPaths).toContain('workspace/src/__tests__/Button.test.ts');
+    expect(buttonPhase.outputDocPaths).toContain('workspace/src/__tests__/Button.ui.test.tsx');
+  });
+
+  it('development-component 페이즈의 inputDocPaths 에 직전 시도의 테스트 출력 파일이 포함된다', () => {
+    const buttonPhase = phases.find(
+      p => p.name === 'development-component' && p.instanceKey === 'button',
+    )!;
+    expect(buttonPhase.inputDocPaths).toContain(
+      'docs/development/feature-task-9/components/button.test-output.md',
+    );
   });
 
   it('development-component 페이즈에 componentContext 가 주입된다', () => {

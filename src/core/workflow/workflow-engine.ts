@@ -6,7 +6,8 @@ import {
   DEFAULT_PHASE_TIMEOUT_MS,
   type Phase,
 } from './phases.js';
-import { readComponentManifest } from './components.js';
+import { readComponentManifest, type ComponentManifest } from './components.js';
+import { runComponentTests, persistTestOutput } from './test-runner.js';
 import { SessionManager } from '../session/session-manager.js';
 import { AgentRegistry } from '../agent/agent-registry.js';
 import { KanbanManager } from '../state/kanban.js';
@@ -94,7 +95,7 @@ export class WorkflowEngine {
         await this.kanban.moveTask(task.id, phase.taskStatus);
         if (aborted()) break;
 
-        const success = await this.executePhase(task, phase, signal);
+        const success = await this.executePhase(task, phase, signal, manifest, taskSlug);
         if (aborted()) break;
 
         if (success) {
@@ -221,7 +222,13 @@ ${metricsList}
    - kill: 관련 태스크를 done으로 마감하고 사유 문서화`;
   }
 
-  private async executePhase(task: Task, phase: Phase, signal?: AbortSignal): Promise<boolean> {
+  private async executePhase(
+    task: Task,
+    phase: Phase,
+    signal?: AbortSignal,
+    manifest?: ComponentManifest | null,
+    taskSlug?: string,
+  ): Promise<boolean> {
     const agent = this.agentRegistry.get(phase.leadAgent);
     if (!agent) {
       logger.error(`에이전트를 찾을 수 없습니다: ${phase.leadAgent}`);
@@ -255,14 +262,62 @@ ${metricsList}
     if (signal?.aborted) return false;
 
     // 산출물 존재 여부 검증
-    if (phase.outputDocPaths.length === 0) return true;
+    if (phase.outputDocPaths.length > 0) {
+      const missing = await this.checkOutputs(phase.outputDocPaths);
+      if (missing.length > 0) {
+        const label = phase.instanceKey ? `${phase.name}(${phase.instanceKey})` : phase.name;
+        logger.error(`[${task.id}] ${label} 산출물 누락: ${missing.join(', ')}`);
+        return false;
+      }
+    }
 
-    const missing = await this.checkOutputs(phase.outputDocPaths);
-    if (missing.length === 0) return true;
+    // development-component 페이즈는 산출물 검증을 통과해도 실제 테스트 실행으로
+    // 한 번 더 검증한다. tech_stack.test_runners 에 command 가 정의된 종류만 실행하고,
+    // 모든 실행 대상이 통과해야 페이즈 완료로 인정한다. 실패하면 결과를
+    // docs/development/feature-<slug>/components/<comp>.test-output.md 에 기록해
+    // 다음 재시도 세션이 inputDocPaths 로 받아 보고 수정할 수 있게 한다.
+    if (
+      phase.name === 'development-component' &&
+      phase.componentContext &&
+      manifest &&
+      taskSlug
+    ) {
+      const label = `${phase.name}(${phase.instanceKey})`;
+      logger.step(`[${task.id}] ${label} 테스트 실행 검증 시작`);
+      try {
+        const result = await runComponentTests({
+          projectRoot: this.projectRoot,
+          manifest,
+          spec: phase.componentContext,
+          signal,
+        });
+        // 결과는 통과/실패 무관하게 항상 파일로 남긴다 — 다음 세션이 보도록.
+        const outputPath = await persistTestOutput(this.projectRoot, taskSlug, result);
+        if (result.allPassed) {
+          if (result.results.length === 0) {
+            logger.warn(
+              `[${task.id}] ${label} test_runners 에 command 가 없어 자동 실행을 건너뜀 — ` +
+              `다음 development-plan 에서 command 를 추가하면 실행 검증됨`,
+            );
+          } else {
+            logger.success(
+              `[${task.id}] ${label} 테스트 ${result.results.length}건 모두 통과 (리포트: ${outputPath})`,
+            );
+          }
+          return true;
+        }
+        const failed = result.results.filter(r => !r.passed).map(r => r.kind).join(', ');
+        logger.error(
+          `[${task.id}] ${label} 테스트 실패 (${failed}) — 동일 페이즈 자동 재시도 (리포트: ${outputPath})`,
+        );
+        return false;
+      } catch (err) {
+        logger.error(`[${task.id}] ${label} 테스트 실행 중 예외: ${(err as Error).message}`);
+        return false;
+      }
+    }
 
-    const label = phase.instanceKey ? `${phase.name}(${phase.instanceKey})` : phase.name;
-    logger.error(`[${task.id}] ${label} 산출물 누락: ${missing.join(', ')}`);
-    return false;
+    return true;
   }
 
   private async checkOutputs(docPaths: string[]): Promise<string[]> {

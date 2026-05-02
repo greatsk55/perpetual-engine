@@ -13,26 +13,47 @@ export interface ComponentManifest {
   version: 1;
   /** 이 매니페스트가 속한 태스크 ID — kanban.json 의 task.id 와 일치해야 한다 */
   task_id: string;
-  /** CTO 가 정한 기술 스택. 5종 테스트 도구를 모두 명시해야 한다. */
+  /** CTO 가 정한 기술 스택. unit/ui 두 종 테스트 도구는 필수, 나머지는 선택. */
   tech_stack: ComponentTechStack;
   /** 구현할 컴포넌트 목록. 의존성 순서대로 정렬되어 있어야 한다. */
   components: ComponentSpec[];
 }
 
+/**
+ * 테스트 러너 정의.
+ *
+ * - 문자열 형태: 도구 이름만 — 워크플로우 엔진이 자동 실행하지 않는다(파일 존재 검증만).
+ * - 객체 형태: `tool` 과 `command` 모두 명시 — 엔진이 `command` 를 Bash 로 실행해서
+ *   종료코드 0 일 때만 페이즈를 통과시킨다. 실패 시 같은 페이즈로 자동 재시도한다.
+ */
+export type TestRunner = string | { tool: string; command: string };
+
 export interface ComponentTechStack {
   /** UI/구현 프레임워크 (예: "react+vite", "svelte+kit", "nextjs", "vue3") */
   framework: string;
-  /** 5종 테스트 도구. 도구 이름은 자유 — CTO 가 결정한 스택에 맞춘다. */
+  /**
+   * 테스트 도구. unit + ui 는 반드시 있어야 한다 (TDD 최소 단위).
+   * snapshot/integration/e2e 는 선택 — 작성하기로 한 종류만 채운다.
+   *
+   * `command` 가 있으면 워크플로우 엔진이 Bash 로 실제 실행해서 통과 여부를 검증한다.
+   * 따라서 가능하면 객체 형태로 적는다.
+   */
   test_runners: {
-    unit: string;
-    ui: string;
-    snapshot: string;
-    integration: string;
-    e2e: string;
+    unit: TestRunner;
+    ui: TestRunner;
+    snapshot?: TestRunner;
+    integration?: TestRunner;
+    e2e?: TestRunner;
   };
   /** 부가 메모 (런타임, 패키지 매니저, 빌드 도구 등) */
   notes?: string;
 }
+
+/** 5종 테스트 카테고리 키 */
+export type TestKind = 'unit' | 'ui' | 'snapshot' | 'integration' | 'e2e';
+export const REQUIRED_TEST_KINDS: TestKind[] = ['unit', 'ui'];
+export const OPTIONAL_TEST_KINDS: TestKind[] = ['snapshot', 'integration', 'e2e'];
+export const ALL_TEST_KINDS: TestKind[] = [...REQUIRED_TEST_KINDS, ...OPTIONAL_TEST_KINDS];
 
 export interface ComponentSpec {
   /** 사람이 읽는 이름 (예: "LoginButton") */
@@ -43,13 +64,16 @@ export interface ComponentSpec {
   description: string;
   /** 구현 산출 파일/디렉토리 경로 (workspace/ 기준 상대경로). 빈 배열 금지. */
   implementation_paths: string[];
-  /** 5종 테스트 파일 경로 — 각각 정확히 한 경로. 워크플로우가 존재 여부를 검증한다. */
+  /**
+   * 테스트 파일 경로. unit + ui 는 필수, 나머지는 선택.
+   * 워크플로우 엔진은 작성하기로 한 종류(키가 존재하는 종류)에 한해 파일 존재를 검증한다.
+   */
   test_paths: {
     unit: string;
     ui: string;
-    snapshot: string;
-    integration: string;
-    e2e: string;
+    snapshot?: string;
+    integration?: string;
+    e2e?: string;
   };
   /** 이 컴포넌트가 의존하는 다른 컴포넌트의 slug 목록 (정렬 힌트용, 강제 아님) */
   dependencies?: string[];
@@ -80,14 +104,27 @@ export function isComponentManifest(value: unknown): value is ComponentManifest 
   return true;
 }
 
+function isTestRunner(value: unknown): value is TestRunner {
+  if (typeof value === 'string') return value.length > 0;
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.tool === 'string' && v.tool.length > 0 &&
+    typeof v.command === 'string' && v.command.length > 0
+  );
+}
+
 function isComponentTechStack(value: unknown): value is ComponentTechStack {
   if (!value || typeof value !== 'object') return false;
   const v = value as Record<string, unknown>;
   if (typeof v.framework !== 'string' || v.framework.length === 0) return false;
   const r = v.test_runners as Record<string, unknown> | undefined;
   if (!r || typeof r !== 'object') return false;
-  for (const key of ['unit', 'ui', 'snapshot', 'integration', 'e2e'] as const) {
-    if (typeof r[key] !== 'string' || (r[key] as string).length === 0) return false;
+  for (const key of REQUIRED_TEST_KINDS) {
+    if (!isTestRunner(r[key])) return false;
+  }
+  for (const key of OPTIONAL_TEST_KINDS) {
+    if (r[key] !== undefined && !isTestRunner(r[key])) return false;
   }
   return true;
 }
@@ -102,8 +139,13 @@ function isComponentSpec(value: unknown): value is ComponentSpec {
   if (!v.implementation_paths.every(p => typeof p === 'string' && p.length > 0)) return false;
   const t = v.test_paths as Record<string, unknown> | undefined;
   if (!t || typeof t !== 'object') return false;
-  for (const key of ['unit', 'ui', 'snapshot', 'integration', 'e2e'] as const) {
+  for (const key of REQUIRED_TEST_KINDS) {
     if (typeof t[key] !== 'string' || (t[key] as string).length === 0) return false;
+  }
+  for (const key of OPTIONAL_TEST_KINDS) {
+    if (t[key] !== undefined && (typeof t[key] !== 'string' || (t[key] as string).length === 0)) {
+      return false;
+    }
   }
   if (v.dependencies !== undefined) {
     if (!Array.isArray(v.dependencies)) return false;
@@ -127,18 +169,33 @@ export function techStackDocPath(taskSlug: string): string {
 }
 
 /**
- * `development-component` 페이즈의 모든 산출 경로 (구현 + 5종 테스트).
+ * 테스트 실행 출력이 저장되는 파일 경로 (재시도 세션이 보고 수정하도록).
+ */
+export function componentTestOutputPath(taskSlug: string, componentSlug: string): string {
+  return `docs/development/feature-${taskSlug}/components/${componentSlug}.test-output.md`;
+}
+
+/**
+ * 컴포넌트가 작성하기로 선언한 테스트 종류만 반환.
+ * 워크플로우 엔진이 산출물 검증 + 테스트 실행 대상을 결정할 때 사용한다.
+ */
+export function declaredTestKinds(spec: ComponentSpec): TestKind[] {
+  const kinds: TestKind[] = [];
+  for (const k of ALL_TEST_KINDS) {
+    if (spec.test_paths[k]) kinds.push(k);
+  }
+  return kinds;
+}
+
+/**
+ * `development-component` 페이즈의 모든 산출 경로 (구현 + 작성하기로 한 테스트들).
  * Phase.outputDocPaths 가 이 경로들을 그대로 반환한다.
+ *
+ * unit/ui 는 필수라 항상 포함된다. snapshot/integration/e2e 는 선언된 것만 검증.
  */
 export function componentExpectedOutputs(spec: ComponentSpec): string[] {
-  return [
-    ...spec.implementation_paths,
-    spec.test_paths.unit,
-    spec.test_paths.ui,
-    spec.test_paths.snapshot,
-    spec.test_paths.integration,
-    spec.test_paths.e2e,
-  ];
+  const tests = declaredTestKinds(spec).map(k => spec.test_paths[k] as string);
+  return [...spec.implementation_paths, ...tests];
 }
 
 /**
@@ -165,4 +222,30 @@ export async function readComponentManifest(
     return null;
   }
   return isComponentManifest(parsed) ? parsed : null;
+}
+
+/**
+ * 테스트 러너에서 실행 명령어를 추출한다. 문자열 형태(도구명만)이면 null.
+ */
+export function getRunnerCommand(runner: TestRunner | undefined): string | null {
+  if (!runner) return null;
+  if (typeof runner === 'string') return null;
+  return runner.command;
+}
+
+/**
+ * 컴포넌트가 실제 실행 가능한 테스트(명령어가 있는 것)의 종류 목록.
+ * 워크플로우 엔진은 이 목록만 Bash 로 실행해서 통과 여부를 검증한다.
+ */
+export function executableTestKinds(
+  manifest: ComponentManifest,
+  spec: ComponentSpec,
+): TestKind[] {
+  const result: TestKind[] = [];
+  for (const k of declaredTestKinds(spec)) {
+    if (getRunnerCommand(manifest.tech_stack.test_runners[k])) {
+      result.push(k);
+    }
+  }
+  return result;
 }
